@@ -1,5 +1,6 @@
 #!/bin/env/python
 #some functions are taken from https://github.com/wajuqi/Sentinel-1-preprocessing-using-Snappy/blob/master/s1_preprocessing.py
+#TODO: move parameters to config file
 
 import imp
 import logging
@@ -69,8 +70,8 @@ def apply_orbit_file(source):
 
     log.info("Applying orbit file ...")
     parameters = HashMap()
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-    parameters.put('Apply-Orbit-File', True)
+    #GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+    #parameters.put('Apply-Orbit-File', True)
     parameters.put('orbitType', 'Sentinel Precise (Auto Download)')
     parameters.put('continueOnFail', False)
     
@@ -143,7 +144,7 @@ def terrain_correction(source, proj, downsample):
     output = GPF.createProduct('Terrain-Correction', parameters, source)
     return output
 
-def grd_boarder_noise(source): #TODO
+def grd_boarder_noise(source):
     print('\tRemove-GRD-Border-Noise...')
     parameters = HashMap()
     parameters.put('trimThreshold ', 0.5)
