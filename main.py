@@ -7,7 +7,8 @@ Creation Date: 2022-07-18
 
 import os
 import logging
-from unicodedata import name
+
+#from unicodedata import name
 
 
 #configure logging
@@ -20,7 +21,10 @@ log.setLevel(logging.INFO)
 
 
 def main():
-    pass
+
+    #reading config file parameters
+    from data.config import do_apply_orbit_file
+
 
 
 if __name__=='__main__':
