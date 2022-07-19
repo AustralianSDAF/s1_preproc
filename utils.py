@@ -30,7 +30,6 @@ def pre_checks():
     :rtype: int
     """
     
-
     #chacking paths
     cwd = os.getcwd()
     log.debug("Checking data directories")
@@ -151,6 +150,13 @@ def grd_boarder_noise(source):
     parameters.put('borderLimit', 1000)
 
     output = GPF.createProduct('Remove-GRD-Border-Noise', parameters, source)
+    return output
+
+def thermal_noise_removal(source):
+    print('\tThermal noise removal...')
+    parameters = HashMap()
+    parameters.put('removeThermalNoise', True)
+    output = GPF.createProduct('ThermalNoiseRemoval', parameters, source)
     return output
 
 def write_file(product, filename, format="GeoTIFF"):
