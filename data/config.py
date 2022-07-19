@@ -46,7 +46,7 @@ do_thermal_noise_removal = True
 # parameters - Assigne None if you want to skip a parameter
 thermal_noise_removal_param = {
     'removeThermalNoise' : True
-}
+    }
 #=======================================================================
 
 do_terrain_correction = True
@@ -56,11 +56,27 @@ terrain_correction_param = {
     'demName' : 'SRTM 3Sec',
     'imgResamplingMethod' : 'BILINEAR_INTERPOLATION',
     'mapProjection' : 'WGS84',
-    
-}
+    'pixelSpacingInMeter' : None,
+    'saveProjectedLocalIncidenceAngle' : True
+    }
+#=======================================================================
 
 do_grd_boarder_noise = False
+# parameters - Assigne None if you want to skip a parameter
+grd_boarder_noise_param = {
+    'trimThreshold' : 0.5,
+    'borderLimit' : 1000
+    }
+#=======================================================================
 
 do_subset_from_polygon = True
-do_subset_from_shapefile = False
+subset_from_polygon_param = {
+    "wkt" : 'POLYGON ((-157.79579162597656 71.36872100830078, -155.4447021484375 71.36872100830078, \
+                    -155.4447021484375 70.60020446777344, -157.79579162597656 70.60020446777344, \
+                    -157.79579162597656 71.36872100830078))'
+}
 
+do_subset_from_shapefile = False
+subset_from_shapefile_param = {
+    "path_to_.shp" : ""
+}

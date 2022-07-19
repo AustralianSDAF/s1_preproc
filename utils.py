@@ -4,6 +4,8 @@
 
 import imp
 import logging
+
+from pandas import isnull
 import shapefile
 import pygeoif
 import os
@@ -44,7 +46,6 @@ def pre_checks():
     
     raw_data_dir = os.path.join(cwd, "data/data_raw/")
     num_files = [f for f in os.listdir(raw_data_dir) if ".zip" in f]
-    
     if num_files:
         log.info("found {} zip files to process".format(len(num_files)))
     else:
@@ -62,20 +63,20 @@ def pre_checks():
         log.warning("archive_data is set to 'True' but there is no data_archived directory found. Creating the directory ...")
         os.mkdir(archive_dir)
     log.debug("Checking data directories completed successfully")
+    
     return 1
         
 
 def apply_orbit_file(source):
 
-    log.info("Applying orbit file ...")
     parameters = HashMap()
-    #GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-    #parameters.put('Apply-Orbit-File', True)
-    parameters.put('orbitType', 'Sentinel Precise (Auto Download)')
-    parameters.put('continueOnFail', False)
-    
+    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
+    for key,value in apply_orbit_file_param.items():
+        if value is not None:
+            parameters.put(key, value)
+
     output = GPF.createProduct('Apply-Orbit-File', parameters, source)
-    log.info("Done!")
     return output
 
 
@@ -95,6 +96,7 @@ def subset_file(source, polygon):
 
 
 def image_calibration(source, polarization, pols):
+
     log.info("Applying calibration ...")
     parameters = HashMap()
     parameters.put('outputSigmaBand', True)
@@ -128,7 +130,6 @@ def speckle_filtering(source, filterSizeY , filterSizeX ):
     output = GPF.createProduct('Speckle-Filter', parameters, source)
     return output
 
-
 def terrain_correction(source, proj, downsample):
     print('\tTerrain correction...')
     parameters = HashMap()
@@ -146,7 +147,7 @@ def terrain_correction(source, proj, downsample):
 def grd_boarder_noise(source):
     print('\tRemove-GRD-Border-Noise...')
     parameters = HashMap()
-    parameters.put('trimThreshold ', 0.5)
+    parameters.put('trimThreshold', 0.5)
     parameters.put('borderLimit', 1000)
 
     output = GPF.createProduct('Remove-GRD-Border-Noise', parameters, source)
