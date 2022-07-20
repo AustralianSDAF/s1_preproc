@@ -136,8 +136,13 @@ def write_file(product, filename):
     ProductIO.writeProduct(product, filename, write_file_format)
 
 
-def subset_from_polygon(source, polygon):
+def subset_from_polygon(source, wkt=None):
 
+    if not wkt:
+        polygon = polygon_param
+    else:
+        polygon = wkt
+        
     #SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
     geometry = WKTReader().read(polygon)
     #HashMap = snappy.jpy.get_type('java.util.HashMap')
@@ -149,8 +154,9 @@ def subset_from_polygon(source, polygon):
 
     return output
 
-def subset_from_shapefile(source, path):
+def subset_from_shapefile(source):
 
+    path = shapefile_path
     #check path
     try:
         r = shapefile.Reader(path)
