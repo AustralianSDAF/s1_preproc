@@ -10,6 +10,8 @@ import shapefile
 import pygeoif
 import os
 
+from data.config import *
+
 import snappy
 from snappy import Product
 from snappy import ProductIO
@@ -80,88 +82,88 @@ def apply_orbit_file(source):
     return output
 
 
-def subset_file(source, polygon):
+def calibration(source):
 
-    SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
-    bounding_wkt = polygon
-    geometry = WKTReader().read(bounding_wkt)
-    HashMap = snappy.jpy.get_type('java.util.HashMap')
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
     parameters = HashMap()
-    parameters.put('copyMetadata', True)
-    parameters.put('geoRegion', geometry)
-    product_subset = snappy.GPF.createProduct('Subset', parameters, source)
+    for key,value in calibration_param.items():
+        if value is not None:
+            parameters.put(key, value)
 
-    return product_subset
-
-
-def image_calibration(source, polarization, pols):
-
-    log.info("Applying calibration ...")
-    parameters = HashMap()
-    parameters.put('outputSigmaBand', True)
-    if polarization == 'DH':
-        parameters.put('sourceBands', 'Intensity_HH,Intensity_HV')
-    elif polarization == 'DV':
-        parameters.put('sourceBands', 'Intensity_VH,Intensity_VV')
-    elif polarization == 'SH' or polarization == 'HH':
-        parameters.put('sourceBands', 'Intensity_HH')
-    elif polarization == 'SV':
-        parameters.put('sourceBands', 'Intensity_VV')
-    else:
-        log.warning("Applying to different polarization")
-    parameters.put('selectedPolarisations', pols)
-    parameters.put('outputImageScaleInDb', False)
     output = GPF.createProduct("Calibration", parameters, source)
     return output 
 
-def speckle_filtering(source, filterSizeY , filterSizeX ):
-    print('\tSpeckle filtering...')
+def speckle_filtering(source):
+
     parameters = HashMap()
-    parameters.put('filter', 'Lee')
-    parameters.put('filterSizeX', filterSizeX)
-    parameters.put('filterSizeY', filterSizeY)
-    parameters.put('dampingFactor', '2')
-    parameters.put('estimateENL', 'true')
-    parameters.put('enl', '1.0')
-    parameters.put('numLooksStr', '1')
-    parameters.put('sigmaStr', '0.9')
-    #parameters.put('anSize', '50')
+    for key,value in speckle_filtering_param.items():
+        if value is not None:
+            parameters.put(key, value)
+
     output = GPF.createProduct('Speckle-Filter', parameters, source)
     return output
 
-def terrain_correction(source, proj, downsample):
-    print('\tTerrain correction...')
+def terrain_correction(source):
+    
     parameters = HashMap()
-    parameters.put('demName', 'SRTM 3Sec')
-    parameters.put('imgResamplingMethod', 'BILINEAR_INTERPOLATION')
-    #parameters.put('mapProjection', proj)       # comment this line if no need to convert to UTM/WGS84, default is WGS84
-    parameters.put('saveProjectedLocalIncidenceAngle', True)
-    parameters.put('saveSelectedSourceBand', True)
-    while downsample == 1:                      # downsample: 1 -- need downsample to 40m, 0 -- no need to downsample
-        parameters.put('pixelSpacingInMeter', 40.0)
-        break
+    for key,value in terrain_correction_param.items():
+        if value is not None:
+            parameters.put(key, value)
+
     output = GPF.createProduct('Terrain-Correction', parameters, source)
     return output
 
 def grd_boarder_noise(source):
-    print('\tRemove-GRD-Border-Noise...')
+    
     parameters = HashMap()
-    parameters.put('trimThreshold', 0.5)
-    parameters.put('borderLimit', 1000)
+    for key,value in grd_boarder_noise_param.items():
+        if value is not None:
+            parameters.put(key, value)
 
     output = GPF.createProduct('Remove-GRD-Border-Noise', parameters, source)
     return output
 
 def thermal_noise_removal(source):
-    print('\tThermal noise removal...')
+    
     parameters = HashMap()
-    parameters.put('removeThermalNoise', True)
+    for key,value in thermal_noise_removal_param.items():
+        if value is not None:
+            parameters.put(key, value)
     output = GPF.createProduct('ThermalNoiseRemoval', parameters, source)
     return output
 
-def write_file(product, filename, format="GeoTIFF"):
-    ProductIO.writeProduct(product, filename, format)
-    # Allowed formats to write: GeoTIFF-BigTIFF,HDF5,Snaphu,BEAM-DIMAP,
-	# GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,
-    # Generic Binary BSQ,Gamma,CSV,NetCDF4-CF,GeoTIFF,NetCDF4-BEAM
+def write_file(product, filename):
+
+    ProductIO.writeProduct(product, filename, write_file_format)
+
+
+def subset_from_polygon(source, polygon):
+
+    #SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
+    geometry = WKTReader().read(polygon)
+    #HashMap = snappy.jpy.get_type('java.util.HashMap')
+    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+    parameters = HashMap()
+    parameters.put('copyMetadata', True)
+    parameters.put('geoRegion', geometry)
+    output = snappy.GPF.createProduct('Subset', parameters, source)
+
+    return output
+
+def subset_from_shapefile(source, path):
+
+    #check path
+    try:
+        r = shapefile.Reader(path)
+
+    except Exception:
+        log.error("cannot read the shapefile in: {}".format(path))
+        log.error(Exception)
+    
+    g=[]
+    for s in r.shapes():
+        g.append(pygeoif.geometry.as_shape(s)) 
+    m = pygeoif.MultiPoint(g)
+    wkt = str(m.wkt).replace("MULTIPOINT", "POLYGON(") + ")"
+    output = subset_from_polygon(source, wkt)
+
+    return output
