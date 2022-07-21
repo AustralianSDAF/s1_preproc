@@ -2,6 +2,13 @@
 ### Please DO NOT change the relative directory of this config file ####
 
 #=======================================================================
+# S1 downloaded files directory (relative to CWD paths)
+raw_data_path = "./data/data_raw/"
+
+# Path to save final processed data (relative to CWD paths)
+final_data_path = "./data/data_processed/"
+
+#=======================================================================
 # pre-processing steps
 #=======================================================================
 
@@ -86,8 +93,9 @@ write_file_format = "GeoTIFF"
 # GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,
 # Generic Binary BSQ,Gamma,CSV,NetCDF4-CF,GeoTIFF,NetCDF4-BEAM"
 
-write_intermediate_result = False # save file after each pre-processing step? (good for debugging)
-
+write_intermediate_result = False # save file after each pre-processing step?
+#                                   (good for checking and debugging)
+#
 #=======================================================================
 # -------------------End of config file---------------------------------
 #=======================================================================

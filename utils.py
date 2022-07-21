@@ -1,11 +1,9 @@
 #!/bin/env/python
 #some functions are taken from https://github.com/wajuqi/Sentinel-1-preprocessing-using-Snappy/blob/master/s1_preprocessing.py
-#TODO: move parameters to config file
 
 import imp
 import logging
 
-from pandas import isnull
 import shapefile
 import pygeoif
 import os
@@ -42,11 +40,11 @@ def pre_checks():
         log.error("could not find config file in data/config.py")
         return -1
 
-    if not os.path.exists(os.path.join(cwd, "data/data_raw/")):
-        log.error("Raw data directory (data/data_raw) does not exist. Terminating execution ...")
+    if not os.path.exists(os.path.join(cwd, raw_data_path)):
+        log.error("Raw data directory {} does not exist. Terminating execution ...".format(raw_data_path))
         return -1
     
-    raw_data_dir = os.path.join(cwd, "data/data_raw/")
+    raw_data_dir = os.path.join(cwd, raw_data_path)
     num_files = [f for f in os.listdir(raw_data_dir) if ".zip" in f]
     if num_files:
         log.info("found {} zip files to process".format(len(num_files)))
@@ -54,9 +52,9 @@ def pre_checks():
         log.warning("No file found in data_raw directory")
         return 0
     
-    processed_dir = os.path.join(cwd, "data/data_processed/")
+    processed_dir = os.path.join(cwd, final_data_path)
     if not os.path.exists(processed_dir):
-        log.warning("data_processed directory does not exist.  Creating ...")
+        log.warning("output data directory does not exist.  Creating directory ...")
         os.mkdir(processed_dir)
     
     archive_dir = os.path.join(cwd, "data/data_archived/")
@@ -70,6 +68,12 @@ def pre_checks():
         
 
 def apply_orbit_file(source):
+    """To properly orthorectify the image, the orbit file is applied using the Apply-Orbit-File GPF module.
+
+    :param source: input
+    :type source: SNAP product object
+    """
+    
 
     parameters = HashMap()
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
@@ -83,7 +87,13 @@ def apply_orbit_file(source):
 
 
 def calibration(source):
+    """calibrate the data to sigma-naught values
 
+    :param source: input
+    :type source: SNAP product object
+    :return: calibrated product
+    :rtype: SNAP product object
+    """
     parameters = HashMap()
     for key,value in calibration_param.items():
         if value is not None:
@@ -93,6 +103,13 @@ def calibration(source):
     return output 
 
 def speckle_filtering(source):
+    """remove speckle noise from the imagary
+
+    :param source: input
+    :type source: SNAP product object
+    :return: despeckled data
+    :rtype: SNAP product object
+    """
 
     parameters = HashMap()
     for key,value in speckle_filtering_param.items():
@@ -103,7 +120,13 @@ def speckle_filtering(source):
     return output
 
 def terrain_correction(source):
-    
+    """ apply terrain correction to the product
+
+    :param source: input
+    :type source: SNAP product object
+    :return: terrain corrected object
+    :rtype: SNAP product object
+    """
     parameters = HashMap()
     for key,value in terrain_correction_param.items():
         if value is not None:
@@ -123,7 +146,13 @@ def grd_boarder_noise(source):
     return output
 
 def thermal_noise_removal(source):
-    
+    """apply thermal noise removal to input data
+
+    :param source: input
+    :type source: SNAP product object
+    :return: thermal noise removed object
+    :rtype: SNAP product object
+    """
     parameters = HashMap()
     for key,value in thermal_noise_removal_param.items():
         if value is not None:
@@ -142,7 +171,7 @@ def subset_from_polygon(source, wkt=None):
         polygon = polygon_param
     else:
         polygon = wkt
-        
+
     #SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
     geometry = WKTReader().read(polygon)
     #HashMap = snappy.jpy.get_type('java.util.HashMap')
@@ -160,7 +189,6 @@ def subset_from_shapefile(source):
     #check path
     try:
         r = shapefile.Reader(path)
-
     except Exception:
         log.error("cannot read the shapefile in: {}".format(path))
         log.error(Exception)
