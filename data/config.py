@@ -68,9 +68,9 @@ terrain_correction_param = {
     }
 #=======================================================================
 
-do_grd_boarder_noise = False
+do_grd_border_noise = False
 # parameters - Assigne None if you do not want to set a parameter
-grd_boarder_noise_param = {
+grd_border_noise_param = {
     'trimThreshold' : 0.5,
     'borderLimit' : 1000
     }

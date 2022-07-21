@@ -135,10 +135,16 @@ def terrain_correction(source):
     output = GPF.createProduct('Terrain-Correction', parameters, source)
     return output
 
-def grd_boarder_noise(source):
-    
+def grd_border_noise(source):
+    """_summary_
+
+    :param source: _description_
+    :type source: _type_
+    :return: _description_
+    :rtype: _type_
+    """
     parameters = HashMap()
-    for key,value in grd_boarder_noise_param.items():
+    for key,value in grd_border_noise_param.items():
         if value is not None:
             parameters.put(key, value)
 

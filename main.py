@@ -10,10 +10,10 @@ import gc
 import logging
 from snappy import ProductIO
 from data.config import do_apply_orbit_file, do_speckle_filtering, do_calibration
-from data.config import do_thermal_noise_removal, do_terrain_correction, do_grd_boarder_noise
+from data.config import do_thermal_noise_removal, do_terrain_correction, do_grd_border_noise
 from data.config import do_subset_from_polygon, do_subset_from_shapefile, write_file_format
 from data.config import raw_data_path, final_data_path
-from utils import apply_orbit_file, pre_checks
+from utils import apply_orbit_file, calibration, grd_border_noise, pre_checks, speckle_filtering, thermal_noise_removal
 
 #configure logging
 logging.basicConfig(
@@ -44,8 +44,23 @@ def main():
             applied_orbit_product = apply_orbit_file (raw_product)
             log.info("apply orbit completed")
 
-        
+        if do_thermal_noise_removal:
+            thermal_noise_removed_product = thermal_noise_removal(applied_orbit_product)
+            log.info("thermal noise removal completed")
 
+        if do_grd_border_noise:
+            border_noise_removed_product = grd_border_noise(thermal_noise_removed_product)
+            log.info("border noise removal completed")
+
+        if do_calibration:
+            calibreted_product = calibration(border_noise_removed_product)
+            log.info("calibration completed")
+
+        if do_speckle_filtering:
+            despeckled_product = speckle_filtering(calibreted_product)
+            log.info("de-speckling completed")
+
+        
 
 if __name__=='__main__':
     main()
