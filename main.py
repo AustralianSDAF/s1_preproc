@@ -43,6 +43,7 @@ def main():
 
         log.info("processing {}".format(file))
         raw_product = ProductIO.readProduct(raw_data_dir + "\\" + file)
+        product_name = raw_product.getName()
         input_prod = raw_product
         
         #start pre-processing steps
@@ -82,7 +83,8 @@ def main():
             input_prod = despeckled_product
 
         # writing final product
-        output_path = os.path.join(final_data_path,)
+        processed_product_name = raw_product + "_" + "processed"
+        output_path = os.path.join(final_data_path, processed_product_name)
         write_file(input_prod, output_path)
 
         
