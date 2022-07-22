@@ -178,6 +178,8 @@ def subset_from_polygon(source, wkt=None):
     else:
         polygon = wkt
 
+    #TODO: check if polygon inside the image
+
     #SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
     geometry = WKTReader().read(polygon)
     #HashMap = snappy.jpy.get_type('java.util.HashMap')
@@ -185,7 +187,7 @@ def subset_from_polygon(source, wkt=None):
     parameters = HashMap()
     parameters.put('copyMetadata', True)
     parameters.put('geoRegion', geometry)
-    output = snappy.GPF.createProduct('Subset', parameters, source)
+    output = GPF.createProduct('Subset', parameters, source)
 
     return output
 

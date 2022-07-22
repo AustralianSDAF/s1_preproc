@@ -93,8 +93,8 @@ write_file_format = "GeoTIFF"
 # GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,
 # Generic Binary BSQ,Gamma,CSV,NetCDF4-CF,GeoTIFF,NetCDF4-BEAM"
 
-write_intermediate_result = False # save file after each pre-processing step?
-#                                   (good for checking and debugging)
+#write_intermediate_result = False # save file after each pre-processing step?
+#                                   (good for checking and debugging ?)
 #
 #=======================================================================
 # -------------------End of config file---------------------------------
