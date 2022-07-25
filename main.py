@@ -83,9 +83,10 @@ def main():
             input_prod = despeckled_product
 
         # writing final product
-        processed_product_name = raw_product + "_" + "processed"
+        processed_product_name = product_name + "_" + "processed"
         output_path = os.path.join(final_data_path, processed_product_name)
         write_file(input_prod, output_path)
+        log.info("processed data saved in {output_path}".format(output_path))
 
         
 if __name__=='__main__':

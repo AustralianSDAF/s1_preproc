@@ -1,15 +1,12 @@
 #!/bin/env/python
 #some functions are taken from https://github.com/wajuqi/Sentinel-1-preprocessing-using-Snappy/blob/master/s1_preprocessing.py
 
-import imp
+#import imp
 import logging
-
 import shapefile
 import pygeoif
 import os
-
 from data.config import *
-
 import snappy
 from snappy import Product
 from snappy import ProductIO
