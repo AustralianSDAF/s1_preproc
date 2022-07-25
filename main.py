@@ -13,7 +13,7 @@ from data.config import do_apply_orbit_file, do_speckle_filtering, do_calibratio
 from data.config import do_thermal_noise_removal, do_terrain_correction, do_grd_border_noise
 from data.config import do_subset_from_polygon, do_subset_from_shapefile, write_file_format
 from data.config import raw_data_path, final_data_path
-from utils import apply_orbit_file, calibration, grd_border_noise, pre_checks, speckle_filtering
+from utils import apply_orbit_file, calibration, grd_border_noise, pre_checks, speckle_filtering, terrain_correction
 from utils import subset_from_polygon, subset_from_shapefile, thermal_noise_removal, write_file
 
 #configure logging
@@ -81,6 +81,11 @@ def main():
             despeckled_product = speckle_filtering(input_prod)
             log.info("de-speckling completed")
             input_prod = despeckled_product
+        
+        if do_terrain_correction:
+            terrain_corrected_product = terrain_correction(input_prod)
+            log.info("terrain correction completed")
+            input_prod = terrain_corrected_product
 
         # writing final product
         processed_product_name = product_name + "_" + "processed"

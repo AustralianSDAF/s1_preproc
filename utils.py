@@ -8,9 +8,9 @@ import pygeoif
 import os
 from data.config import *
 import snappy
-from snappy import Product
+#from snappy import Product
 from snappy import ProductIO
-from snappy import ProductUtils
+#from snappy import ProductUtils
 from snappy import WKTReader
 from snappy import HashMap
 from snappy import GPF
@@ -61,6 +61,7 @@ def pre_checks():
         os.mkdir(archive_dir)
     log.debug("Checking data directories completed successfully")
     
+    
     return 1
         
 
@@ -71,7 +72,6 @@ def apply_orbit_file(source):
     :type source: SNAP product object
     """
     
-
     parameters = HashMap()
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
@@ -82,7 +82,6 @@ def apply_orbit_file(source):
     output = GPF.createProduct('Apply-Orbit-File', parameters, source)
     return output
 
-
 def calibration(source):
     """calibrate the data to sigma-naught values
 
@@ -92,6 +91,8 @@ def calibration(source):
     :rtype: SNAP product object
     """
     parameters = HashMap()
+    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
     for key,value in calibration_param.items():
         if value is not None:
             parameters.put(key, value)
@@ -109,6 +110,8 @@ def speckle_filtering(source):
     """
 
     parameters = HashMap()
+    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
     for key,value in speckle_filtering_param.items():
         if value is not None:
             parameters.put(key, value)
@@ -125,6 +128,8 @@ def terrain_correction(source):
     :rtype: SNAP product object
     """
     parameters = HashMap()
+    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
     for key,value in terrain_correction_param.items():
         if value is not None:
             parameters.put(key, value)
@@ -141,6 +146,8 @@ def grd_border_noise(source):
     :rtype: _type_
     """
     parameters = HashMap()
+    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
     for key,value in grd_border_noise_param.items():
         if value is not None:
             parameters.put(key, value)
@@ -157,6 +164,8 @@ def thermal_noise_removal(source):
     :rtype: SNAP product object
     """
     parameters = HashMap()
+    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
     for key,value in thermal_noise_removal_param.items():
         if value is not None:
             parameters.put(key, value)
@@ -166,7 +175,6 @@ def thermal_noise_removal(source):
 def write_file(product, filename):
 
     ProductIO.writeProduct(product, filename, write_file_format)
-
 
 def subset_from_polygon(source, wkt=None):
 
@@ -179,9 +187,10 @@ def subset_from_polygon(source, wkt=None):
 
     #SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
     geometry = WKTReader().read(polygon)
-    #HashMap = snappy.jpy.get_type('java.util.HashMap')
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
     parameters = HashMap()
+    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
     parameters.put('copyMetadata', True)
     parameters.put('geoRegion', geometry)
     output = GPF.createProduct('Subset', parameters, source)
