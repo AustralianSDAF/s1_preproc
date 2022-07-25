@@ -26,7 +26,7 @@ log.setLevel(logging.INFO)
 
 def main():
  
-    log.info("Checking fils and directories ...")
+    log.info("Checking files and directories ...")
     pre_check = pre_checks()
     if pre_check == 1:
         log.info("Pre-checks completed")
@@ -61,7 +61,6 @@ def main():
             log.info("subsetting form shapefile completed")
             input_prod = subsetted_product
 
-
         if do_thermal_noise_removal:
             thermal_noise_removed_product = thermal_noise_removal(input_prod)
             log.info("thermal noise removal completed")
@@ -92,7 +91,6 @@ def main():
         output_path = os.path.join(final_data_path, processed_product_name)
         write_file(input_prod, output_path)
         log.info("processed data saved in {output_path}".format(output_path))
-
         
 if __name__=='__main__':
     main()

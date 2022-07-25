@@ -29,7 +29,7 @@ speckle_filtering_param = {
     'filterSizeX' : '5',
     'filterSizeY' : '5',
     'dampingFactor' : '2',
-    'estimateENL' : 'true',
+    'estimateENL' : True,
     'enl' : '1.0',
     'numLooksStr' : '1',
     'windowSize' : None,
