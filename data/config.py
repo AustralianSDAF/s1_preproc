@@ -36,8 +36,8 @@ speckle_filtering_param = {
     'enl' : '1.0',
     'numLooksStr' : '1',
     'windowSize' : None,
-    'targetWindowSizeStr' : None,
-    'sigmaStr' : '9.0',
+    'targetWindowSizeStr' : '3x3',
+    'sigmaStr' : '0.9',
     'anSize' : '50'
     }
 #=======================================================================
@@ -64,14 +64,14 @@ do_terrain_correction = True
 terrain_correction_param = {
     'sourceBands' : 'Sigma0_VV',
     'demName' : 'SRTM 3Sec',
-    'imgResamplingMethod' : 'BILINEAR_INTERPOLATION',
-    'mapProjection' : 'WGS84',
+    'imgResamplingMethod' : None,
+    'mapProjection' : None,
     'pixelSpacingInMeter' : 10.0,
-    'saveProjectedLocalIncidenceAngle' : True
+    'saveProjectedLocalIncidenceAngle' : None
     }
 #=======================================================================
 
-do_grd_border_noise = False
+do_grd_border_noise = True
 # parameters - Assigne None if you do not want to set a parameter
 grd_border_noise_param = {
     'trimThreshold' : 0.5,
@@ -97,7 +97,7 @@ write_file_format = "GeoTIFF"
 # Generic Binary BSQ,Gamma,CSV,NetCDF4-CF,GeoTIFF,NetCDF4-BEAM"
 
 #save raw_data after processing is done
-do_archive_data = False 
+do_archive_data = True 
 #
 #=======================================================================
 # -------------------End of config file---------------------------------

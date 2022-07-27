@@ -4,6 +4,10 @@ Description: Script for pre-processing S1 imagary.
 Original Author: foad.farivar@curtin.edu.au
 Creation Date: 2022-07-28
 """
+import sys
+
+# No need to include this line if running on Docker
+sys.path.append('/home/foad/snap/bin/home/foad/anaconda3/envs/landgate/bin')
 
 import os
 import shutil
@@ -43,7 +47,7 @@ def main():
         gc.collect()
 
         log.info("processing {}".format(file))
-        raw_product = ProductIO.readProduct(raw_data_dir + "\\" + file)
+        raw_product = ProductIO.readProduct(raw_data_dir + "/" + file)
         product_name = raw_product.getName()
         input_prod = raw_product
         
@@ -91,11 +95,11 @@ def main():
         processed_product_name = product_name + "_" + "processed"
         output_path = os.path.join(final_data_path, processed_product_name)
         write_file(input_prod, output_path)
-        log.info("processed data saved in {output_path}".format(output_path))
+        log.info("processed data saved in {}".format(output_path))
 
         if do_archive_data:
             archive_data_dir = os.path.join(os.getcwd(), archive_data_path)
-            shutil.move()
+            shutil.move(raw_data_dir + "/" + file, archive_data_dir + "/" + file)
         
 if __name__=='__main__':
     main()
