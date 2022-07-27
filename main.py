@@ -6,13 +6,14 @@ Creation Date: 2022-07-28
 """
 
 import os
+import shutil
 import gc
 import logging
 from snappy import ProductIO
 from data.config import do_apply_orbit_file, do_speckle_filtering, do_calibration
 from data.config import do_thermal_noise_removal, do_terrain_correction, do_grd_border_noise
 from data.config import do_subset_from_polygon, do_subset_from_shapefile, write_file_format
-from data.config import raw_data_path, final_data_path
+from data.config import raw_data_path, final_data_path, archive_data_path, do_archive_data
 from utils import apply_orbit_file, calibration, grd_border_noise, pre_checks, speckle_filtering, terrain_correction
 from utils import subset_from_polygon, subset_from_shapefile, thermal_noise_removal, write_file
 
@@ -91,6 +92,10 @@ def main():
         output_path = os.path.join(final_data_path, processed_product_name)
         write_file(input_prod, output_path)
         log.info("processed data saved in {output_path}".format(output_path))
+
+        if do_archive_data:
+            archive_data_dir = os.path.join(os.getcwd(), archive_data_path)
+            shutil.move()
         
 if __name__=='__main__':
     main()

@@ -41,6 +41,11 @@ def pre_checks():
         log.error("Raw data directory {} does not exist. Terminating execution ...".format(raw_data_path))
         return -1
     
+    shapefile_abs_path = os.path.join(cwd, shapefile_path)
+    if do_subset_from_shapefile and not os.path.isfile(shapefile_abs_path):
+        log.error("shapefile does not exist in {}".format(shapefile_path))
+        return -1
+    
     raw_data_dir = os.path.join(cwd, raw_data_path)
     num_files = [f for f in os.listdir(raw_data_dir) if ".zip" in f]
     if num_files:
@@ -54,13 +59,12 @@ def pre_checks():
         log.warning("output data directory does not exist.  Creating directory ...")
         os.mkdir(processed_dir)
     
-    archive_dir = os.path.join(cwd, "data/data_archived/")
-    from data.config import archive_data
-    if archive_data and not os.path.exists(archive_data):
+    archive_dir = os.path.join(cwd, archive_data_path)
+    if do_archive_data and not os.path.exists(archive_dir):
         log.warning("archive_data is set to 'True' but there is no data_archived directory found. Creating the directory ...")
         os.mkdir(archive_dir)
+
     log.debug("Checking data directories completed successfully")
-    
     
     return 1
         

@@ -8,6 +8,9 @@ raw_data_path = "./data/data_raw/"
 # Path to save final processed data (relative to CWD paths)
 final_data_path = "./data/data_processed/"
 
+# Path to archive the processed raw data (relative to CWD paths)
+archive_data_path = "./data/data_archived/"
+
 #=======================================================================
 # pre-processing steps
 #=======================================================================
@@ -63,7 +66,7 @@ terrain_correction_param = {
     'demName' : 'SRTM 3Sec',
     'imgResamplingMethod' : 'BILINEAR_INTERPOLATION',
     'mapProjection' : 'WGS84',
-    'pixelSpacingInMeter' : None,
+    'pixelSpacingInMeter' : 10.0,
     'saveProjectedLocalIncidenceAngle' : True
     }
 #=======================================================================
@@ -76,7 +79,7 @@ grd_border_noise_param = {
     }
 #=======================================================================
 
-do_subset_from_polygon = True
+do_subset_from_polygon = False
 polygon_param = 'POLYGON ((-157.79579162597656 71.36872100830078, \
                             -155.4447021484375 71.36872100830078, \
                             -155.4447021484375 70.60020446777344, \
@@ -84,8 +87,8 @@ polygon_param = 'POLYGON ((-157.79579162597656 71.36872100830078, \
                             -157.79579162597656 71.36872100830078))'
 
 
-do_subset_from_shapefile = False
-shapefile_path = ""
+do_subset_from_shapefile = True
+shapefile_path = "./data/data_raw/island_boundary2.shp"
 #=======================================================================
 
 write_file_format = "GeoTIFF"
@@ -93,8 +96,8 @@ write_file_format = "GeoTIFF"
 # GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,
 # Generic Binary BSQ,Gamma,CSV,NetCDF4-CF,GeoTIFF,NetCDF4-BEAM"
 
-#write_intermediate_result = False # save file after each pre-processing step?
-#                                   (good for checking and debugging ?)
+#save raw_data after processing is done
+do_archive_data = False 
 #
 #=======================================================================
 # -------------------End of config file---------------------------------
