@@ -51,7 +51,7 @@ def pre_checks():
     if num_files:
         log.info("found {} zip files to process".format(len(num_files)))
     else:
-        log.warning("No file found in data_raw directory")
+        log.warning("No file found to process in {}".format(raw_data_dir))
         return 0
     
     processed_dir = os.path.join(cwd, final_data_path)
