@@ -3,9 +3,6 @@ FROM ubuntu:18.04
 # SNAP is still stuck with Python 3.6, i.e. ubuntu:18.04
 # https://forum.step.esa.int/t/modulenotfounderror-no-module-named-jpyutil/25785/2
 
-LABEL authors="Carmen Tawalika,Markus Neteler"
-LABEL maintainer="tawalika@mundialis.de,neteler@mundialis.de"
-
 ENV DEBIAN_FRONTEND noninteractive
 
 USER root
@@ -27,14 +24,6 @@ RUN apt-get update && apt-get upgrade -y && \
     && apt-get autoremove -y \
     && apt-get clean -y
 
-# Set the locale
-#ENV LANG en_US.utf8
-#ENV LANGUAGE en_US:en
-#ENV LC_ALL en_US.utf8
-
-# SNAP wants the current folder '.' included in LD_LIBRARY_PATH
-#ENV LD_LIBRARY_PATH ".:$LD_LIBRARY_PATH"
-
 # install SNAPPY
 RUN apt-get install default-jdk maven -y
 ENV JAVA_HOME "/usr/lib/jvm/java-11-openjdk-amd64/"
@@ -53,12 +42,8 @@ RUN sed -i -e 's/-Xmx1G/-Xmx4G/g' /usr/local/snap/bin/gpt.vmoptions
 
 RUN update-alternatives --remove python /usr/bin/python3
 
-# due to Ubuntu-GDAL being too old we prefer to use the SNAP-bundled GDAL:
-# INFO: org.esa.s2tbx.dataio.gdal.GDALVersion: GDAL not found on system. Internal GDAL 3.0.0 from distribution will be used. (f1)
-
 # path
 ENV PATH=$PATH:/root/.local/bin
-#RUN echo "export PATH=\$PATH:/usr/local/snap/bin/:/root/.snap/auxdata/gdal/gdal-3-0-0/bin" >> /root/.bashrc
 
 # tests
 # https://senbox.atlassian.net/wiki/spaces/SNAP/pages/50855941/Configure+Python+to+use+the+SNAP-Python+snappy+interface
