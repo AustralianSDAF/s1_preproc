@@ -7,7 +7,7 @@ Creation Date: 2022-07-28
 import sys
 
 # No need to include this line if running on Docker
-sys.path.append('/home/foad/snap/bin/home/foad/anaconda3/envs/landgate/bin')
+sys.path.append('/root/.snap/snap-python')
 
 import os
 import shutil
@@ -21,6 +21,7 @@ from data.config import raw_data_path, final_data_path, archive_data_path, do_ar
 from utils import apply_orbit_file, calibration, grd_border_noise, pre_checks, speckle_filtering, terrain_correction
 from utils import subset_from_polygon, subset_from_shapefile, thermal_noise_removal, write_file
 
+#DEM.srtm3GeoTiffDEM_HTTP = "http://download.esa.int/step/auxdata/dem/SRTM90/tiff/"
 #configure logging
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -93,9 +94,14 @@ def main():
 
         # writing final product
         processed_product_name = product_name + "_" + "processed"
+        
         output_path = os.path.join(final_data_path, processed_product_name)
-        write_file(input_prod, output_path)
-        log.info("processed data saved in {}".format(output_path))
+        output_data_dir = os.path.join(os.getcwd(), output_path)
+        #write_file(input_prod, output_data_dir)
+        
+        ProductIO.writeProduct(input_prod, output_data_dir, write_file_format)
+
+        log.info("processed data saved in {}".format(output_data_dir))
 
         if do_archive_data:
             archive_data_dir = os.path.join(os.getcwd(), archive_data_path)

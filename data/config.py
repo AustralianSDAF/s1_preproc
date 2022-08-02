@@ -97,7 +97,7 @@ write_file_format = "GeoTIFF"
 # Generic Binary BSQ,Gamma,CSV,NetCDF4-CF,GeoTIFF,NetCDF4-BEAM"
 
 #save raw_data after processing is done
-do_archive_data = True 
+do_archive_data = False 
 #
 #=======================================================================
 # -------------------End of config file---------------------------------
