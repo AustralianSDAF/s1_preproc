@@ -42,7 +42,6 @@ RUN update-alternatives --remove python /usr/bin/python3
 # path
 ENV PATH=$PATH:/root/.local/bin
 
-# https://senbox.atlassian.net/wiki/spaces/SNAP/pages/50855941/Configure+Python+to+use+the+SNAP-Python+snappy+interface
 # configure python to use snappy
 RUN bash /src/snap/config_python.sh
 RUN (cd /root/.snap/snap-python/snappy && python3 setup.py install)

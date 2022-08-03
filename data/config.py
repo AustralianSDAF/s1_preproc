@@ -96,7 +96,7 @@ write_file_format = "GeoTIFF"
 # GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,
 # Generic Binary BSQ,Gamma,CSV,NetCDF4-CF,GeoTIFF,NetCDF4-BEAM"
 
-#save raw_data after processing is done
+#archive raw_data after processing is done?
 do_archive_data = False 
 #
 #=======================================================================
