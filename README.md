@@ -1,8 +1,8 @@
 # landgate-ASDAF project
-###sentinel-1 image pre-processing pipeline
+### Sentinel-1 image pre-processing pipeline
 ___
 
-Ubuntu based docker image with  ESA Sentinel Application Platform (SNAP) and Python 3.6 installed, for pre-processing Sentinel 1 imagery to analysis ready data.
+Ubuntu based docker image with  ESA Sentinel Application Platform (SNAP) and Python 3.6 installed, for processing Sentinel 1 imagery to analysis ready data.
 
 The following functions are included in the pre-processing steps:
 1. Orbit file application.
