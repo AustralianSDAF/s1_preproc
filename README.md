@@ -27,4 +27,23 @@ The following functions are included in the pre-processing steps:
 
 (f) The final processed image will be saved in final_data_path (by default in `./data/data_processed`)
 
+## Directory structure
 
+```
+.
+├── Dockerfile
+├── README.md
+├── __init__.py
+├── data
+│   ├── config.py
+│   ├── data_archived
+│   ├── data_processed
+│   └── data_raw
+├── main.py
+├── requirements.txt
+├── snap
+│   ├── about.py
+│   ├── config_python.sh
+│   └── response.varfile
+└── utils.py
+```
