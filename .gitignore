@@ -1,7 +1,7 @@
 __pycache__/
 
 #S1 data
-data/data_archived/*
-data/data_raw/*
+data/data_archived/*.zip
+data/data_raw/*.zip
 data/data_processed/*
 
