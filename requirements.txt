@@ -1,3 +1,2 @@
-numpy
 pygeoif
 pyshp

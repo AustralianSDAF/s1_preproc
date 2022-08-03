@@ -1,1 +1,5 @@
 __pycache__/
+data/data_archived/*
+data/data_raw/*
+data/data_processed/*
+.gitignore
