@@ -1,7 +1,16 @@
 # landgate-ASDAF project
 ### Sentinel-1 image pre-processing pipeline
-___
+Author(s):
+- Foad Farivar (foad.farivar@curtin.edu.au)
 
+## contents
+- [Overview](#overview)
+- [Setup](#setup-steps)
+- [Directory structure](#directory-structure)
+- [References](#references)
+
+
+## Overview 
 Ubuntu based docker image with  ESA Sentinel Application Platform (SNAP) and Python 3.6 installed, for processing Sentinel 1 imagery to analysis ready data.
 
 The following functions are included in the pre-processing steps:
