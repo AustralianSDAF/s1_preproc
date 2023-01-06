@@ -22,7 +22,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
-def pre_checks():
+def pre_checks(filename):
     """perform directory structure check
 
     :return: if return = 0 -> no file to processs | if return = -1 -> Error | else: Success
@@ -37,7 +37,7 @@ def pre_checks():
         log.error("could not find config file in data/config.py")
         return -1
 
-    if not os.path.exists(os.path.join(cwd, raw_data_path)):
+    if (not os.path.exists(os.path.join(cwd, raw_data_path))) and (filename is not None):
         log.error("Raw data directory {} does not exist. Terminating execution ...".format(raw_data_path))
         return -1
     

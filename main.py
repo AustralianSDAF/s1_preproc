@@ -2,13 +2,15 @@
 """
 Description: Script for pre-processing S1 imagary.
 Original Author: foad.farivar@curtin.edu.au
+Edited by: leigh.tyers@curtin.edu.au
 Creation Date: 2022-07-28
 """
 import sys
 
 # No need to include this line if running on Docker
-sys.path.append('/root/.snap/snap-python')
+# sys.path.append('/root/.snap/snap-python')
 
+import click
 import os
 import shutil
 import gc
@@ -21,8 +23,8 @@ from data.config import raw_data_path, final_data_path, archive_data_path, do_ar
 from utils import apply_orbit_file, calibration, grd_border_noise, pre_checks, speckle_filtering, terrain_correction
 from utils import subset_from_polygon, subset_from_shapefile, thermal_noise_removal, write_file
 
-#DEM.srtm3GeoTiffDEM_HTTP = "http://download.esa.int/step/auxdata/dem/SRTM90/tiff/"
-#configure logging
+# DEM.srtm3GeoTiffDEM_HTTP = "http://download.esa.int/step/auxdata/dem/SRTM90/tiff/"
+# configure logging
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
@@ -30,10 +32,17 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
-def main():
- 
+# Set flags for an issue with click/python conflict of ASCII encoding for environment
+os.environ['LC_ALL'] = r'C.UTF-8'
+os.environ['LANG'] = r'C.UTF-8'
+
+
+@click.command()
+@click.option('--filename', default=None)
+def main(filename):
+    log.info(f"Filename passed in! Filename is {filename}")
     log.info("Checking files and directories ...")
-    pre_check = pre_checks()
+    pre_check = pre_checks(filename)
     if pre_check == 1:
         log.info("Pre-checks completed")
     else:
@@ -41,18 +50,21 @@ def main():
         return 0
 
     raw_data_dir = os.path.join(os.getcwd(), raw_data_path)
-    num_files = [f for f in os.listdir(raw_data_dir) if ".zip" in f]
-
+    if(filename is None):
+        num_files = [f for f in os.listdir(raw_data_dir) if ".zip" in f]
+    else:
+        num_files = [f for f in os.listdir(raw_data_dir) if os.path.basename(f) == os.path.basename(filename)]
+    log.info(num_files)
     for file in num_files:
         gc.enable()
         gc.collect()
-
+        full_fname = os.path.join(raw_data_dir, file)
         log.info("processing {}".format(file))
-        raw_product = ProductIO.readProduct(raw_data_dir + "/" + file)
+        raw_product = ProductIO.readProduct(os.path.join(raw_data_dir, full_fname))
         product_name = raw_product.getName()
         input_prod = raw_product
-        
-        #start pre-processing steps
+
+        # start pre-processing steps
         if do_apply_orbit_file:
             applied_orbit_product = apply_orbit_file (input_prod)
             log.info("apply orbit completed")
@@ -86,7 +98,7 @@ def main():
             despeckled_product = speckle_filtering(input_prod)
             log.info("de-speckling completed")
             input_prod = despeckled_product
-        
+
         if do_terrain_correction:
             terrain_corrected_product = terrain_correction(input_prod)
             log.info("terrain correction completed")
@@ -94,11 +106,11 @@ def main():
 
         # writing final product
         processed_product_name = product_name + "_" + "processed"
-        
+
         output_path = os.path.join(final_data_path, processed_product_name)
         output_data_dir = os.path.join(os.getcwd(), output_path)
-        #write_file(input_prod, output_data_dir)
-        
+        # write_file(input_prod, output_data_dir)
+
         ProductIO.writeProduct(input_prod, output_data_dir, write_file_format)
 
         log.info("processed data saved in {}".format(output_data_dir))
@@ -106,6 +118,6 @@ def main():
         if do_archive_data:
             archive_data_dir = os.path.join(os.getcwd(), archive_data_path)
             shutil.move(raw_data_dir + "/" + file, archive_data_dir + "/" + file)
-        
+
 if __name__=='__main__':
     main()
