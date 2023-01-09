@@ -37,12 +37,20 @@ os.environ['LC_ALL'] = r'C.UTF-8'
 os.environ['LANG'] = r'C.UTF-8'
 
 
+
 @click.command()
 @click.option('--filename', default=None)
-def main(filename):
+@click.option('--shapefile', default=None)
+def main(filename, shapefile):
     log.info(f"Filename passed in! Filename is {filename}")
     log.info("Checking files and directories ...")
     pre_check = pre_checks(filename)
+    # Load polygon from file
+    if(shapefile is not None):
+        shapefile_path = shapefile
+        do_subset_from_shapefile = True
+        do_subset_from_polygon = False
+
     if pre_check == 1:
         log.info("Pre-checks completed")
     else:
@@ -66,7 +74,7 @@ def main(filename):
 
         # start pre-processing steps
         if do_apply_orbit_file:
-            applied_orbit_product = apply_orbit_file (input_prod)
+            applied_orbit_product = apply_orbit_file(input_prod)
             log.info("apply orbit completed")
             input_prod = applied_orbit_product
 
