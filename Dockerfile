@@ -2,6 +2,8 @@ FROM ubuntu:18.04
 
 # SNAP is still stuck with Python 3.6, i.e. ubuntu:18.04
 # https://forum.step.esa.int/t/modulenotfounderror-no-module-named-jpyutil/25785/2
+# I've tried compiling a wheels of jpy (the dependency stuck at 3.6) for Python 3.7,
+# But have not had any luck with getting said wheel to then work with installation.
 
 ENV DEBIAN_FRONTEND noninteractive
 USER root
@@ -11,6 +13,7 @@ RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends --no-install-suggests \
     build-essential \
     libgfortran5 \
+    libgeos-dev \
     locales \
     python3 \
     python3-dev \
@@ -42,6 +45,8 @@ RUN update-alternatives --remove python /usr/bin/python3
 # path
 ENV PATH=$PATH:/root/.local/bin
 
+
+
 # configure python to use snappy
 RUN bash /src/snap/config_python.sh
 RUN (cd /root/.snap/snap-python/snappy && python3 setup.py install)
@@ -59,7 +64,11 @@ RUN rm -rf /src
 WORKDIR /app
 
 COPY requirements.txt /app/
+RUN /usr/bin/python3 -m pip install wheel setuptools
 RUN /usr/bin/python3 -m pip install -r /app/requirements.txt
+RUN export LC_ALL=C.UTF-8
+RUN export LANG=C.UTF-8
+
 
 #copy project
 COPY . .

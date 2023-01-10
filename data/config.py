@@ -80,14 +80,14 @@ grd_border_noise_param = {
 #=======================================================================
 
 do_subset_from_polygon = False
-polygon_param = 'POLYGON ((-157.79579162597656 71.36872100830078, \
-                            -155.4447021484375 71.36872100830078, \
-                            -155.4447021484375 70.60020446777344, \
-                            -157.79579162597656 70.60020446777344, \
-                            -157.79579162597656 71.36872100830078))'
+polygon_param = 'POLYGON ((125.54647 -17.94607, \
+                            125.54647 -18.97182, \
+                            126.12290 -18.97182, \
+                            126.12290 -17.94607, \
+                            125.54647 -17.94607))'
 
 
-do_subset_from_shapefile = True
+do_subset_from_shapefile = False
 shapefile_path = "./data/data_raw/island_boundary2.shp"
 #=======================================================================
 
@@ -97,7 +97,7 @@ write_file_format = "GeoTIFF"
 # Generic Binary BSQ,Gamma,CSV,NetCDF4-CF,GeoTIFF,NetCDF4-BEAM"
 
 #archive raw_data after processing is done?
-do_archive_data = False 
+do_archive_data = False
 #
 #=======================================================================
 # -------------------End of config file---------------------------------
