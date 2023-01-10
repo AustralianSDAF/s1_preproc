@@ -46,10 +46,11 @@ def pre_checks(
         log.error("Raw data directory {} does not exist. Terminating execution ...".format(raw_data_path))
         return -1
 
-    shapefile_abs_path = os.path.join(cwd, shapefile_path)
-    if do_subset_from_shapefile and not os.path.isfile(shapefile_abs_path):
-        log.error("shapefile does not exist in {}".format(shapefile_path))
-        return -1
+    if do_subset_from_shapefile:
+        shapefile_abs_path = os.path.join(cwd, shapefile_path)
+        if not os.path.isfile(shapefile_abs_path):
+            log.error("shapefile does not exist in {}".format(shapefile_path))
+            return -1
 
     raw_data_dir = os.path.join(cwd, raw_data_path)
     num_files = [f for f in os.listdir(raw_data_dir) if ".zip" in f]
@@ -191,7 +192,7 @@ def subset_from_polygon(source, poly_inp=None):
     from shapely.geometry import Polygon
     import shapely
     if type(poly_inp) is str:     # should be a wkt string
-        poly = wkt.loads(wkt_s)
+        poly = wkt.loads(poly_inp)
         wkt_s = poly_inp
     elif isinstance(poly_inp, Polygon):
         poly = poly_inp
@@ -208,7 +209,10 @@ def subset_from_polygon(source, poly_inp=None):
     image_poly = Polygon([(i.lon, i.lat) for i in list(data_boundary_java)])
     if(poly is not None):
         if(not image_poly.intersects(poly)):
-            return source
+            log.error("Polygon does not intersect image. Raising an exception")
+            log.error(f"    polygon given is {poly.wkt}")
+            log.error(f"    Image polygon is {image_poly.wkt}")
+            raise ValueError("Shapefile polygon does not overlap with image")
 
     # SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
     geometry = WKTReader().read(wkt_s)
@@ -251,7 +255,10 @@ def subset_from_shapefile(source, shapefile_path=None):
     image_poly = Polygon([(i.lon, i.lat) for i in list(data_boundary_java)])
     if(poly is not None):
         if(not image_poly.intersects(poly)):
-            return source
+            log.error("Shapefile polygon does not intersect image. Raising an exception")
+            log.error(f"    Shapefile polygon is {poly.wkt}")
+            log.error(f"    Image polygon is {image_poly.wkt}")
+            raise ValueError("Shapefile polygon does not overlap with image")
 
     output = subset_from_polygon(source, wkt)
 

@@ -43,10 +43,10 @@ def main(filename, shapefile):
     process_file(filename, shapefile)
 
 
-def process_file(filename, shapefile=None):
+def process_file(filename, shapefile_path=None):
     """Processes a file using input filename. If filename is None it tries to get files from a directory"""
     # Load polygon from file
-    if(shapefile is not None):
+    if(shapefile_path is not None):
         shapefile_path = shapefile
         cfg.do_subset_from_shapefile = True
         cfg.do_subset_from_polygon = False
