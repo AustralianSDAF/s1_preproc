@@ -1,6 +1,7 @@
 # Landgate-ASDAF project
 ### Sentinel-1 image pre-processing pipeline
 Author(s):
+- Leigh Ters
 - Foad Farivar (foad.farivar@curtin.edu.au)
 
 ## Contents
@@ -12,81 +13,17 @@ Author(s):
 ___
 
 ## Overview 
-Ubuntu 18.04 based docker image with the latest  ESA Sentinel Application Platform (SNAP 9.0) and Python 3.6, for processing Sentinel 1 imagery to analysis ready data.
+A python repository for automatically acquiring and processing Sentinel 1 imagery over Australia.
 
-The following functions are included in the pre-processing steps (in `utils.py`):
-- Orbit file application.
-- Image subsetting from either a polygon or shapefile.
-- Thermal noise removal.
-- GRD border noise removal.
-- Image calibration.
-- Speckle filtering.
-- Terrain correction
-- Writing to selected format file
+This package is composed of two parts, a processing tool and a downloading tool. The downloading tool requires python >= 3.7 , while the processing tool requires python==3.6 (as of writing, python 3.6 has been depreciated). This discrepency is solved by building a docker image for the processing tool, which is called from the overarching python 3.10 script.
 
+## Downloading tool
+TODO
 
-**(The order of execution can be changed in `main.py`)** 
+## Processing tool
+TODO
 
-## Setup steps (Docker)
-(a) Clone this repository to your local directory: `git clone git@github.com:CurtinIC/landgate.git`.
-
-(b) Check the config file (`./data/config.py`) to set/change the pipeline parameters.
-
-(c) Build the docker image: `docker build -t landgate:{version} .`.
-
-(d) Copy the row .zip files to raw_data_path (by default in `./data/data_raw`).
-
-(e) Run the docker image: `docker run --rm -it -v ${PWD}/data/:/app/data landgate:{version}`.
-
-(f) The final processed image will be saved in final_data_path (by default in `./data/data_processed`)
-
-## Setup steps (Conda)
-(a) Clone this repository to your local directory: `git clone git@github.com:CurtinIC/landgate.git`.
-
-(b) Check the config file (`./data/config.py`) to set/change the pipeline parameters.
-
-(c) Download SNAP: `wget  --progress=bar https://download.esa.int/step/snap/9.0/installers/esa-snap_sentinel_unix_9_0_0.sh`
-
-(d) Create a conda environment:  `conda create --name landgate python=3.6`
-
-(e) Activate the environment `conda activate landgate`.
-
-(f) Install SNAP: `bash esa-snap_sentinel_unix_9_0_0.sh`
-
-(g) Configure SNAP for Python:
-```
-> cd ~/snap/bin/
-> ./snappy-conf {python_path}
-> cd ~/.snap/snap-python/snappy 
-> python3 setup.py install
-> python3 -m sys.path.append('<snappy-dir>')
-```
-(h) Install packages: `pip install -r requirements.txt`.
-
-(i) Run the main file: `python3 main.py`
-
-(j) The final processed image will be saved in final_data_path (by default in `./data/data_processed`)
-
-## Directory structure
-
-```
-.
-├── Dockerfile
-├── README.md
-├── __init__.py
-├── data
-│   ├── config.py
-│   ├── data_archived
-│   ├── data_processed
-│   └── data_raw
-├── main.py
-├── requirements.txt
-├── snap
-│   ├── about.py
-│   ├── config_python.sh
-│   └── response.varfile
-└── utils.py
-```
+Snappy by default doesnt good compresion to the geotiff, so once the snappy processing is completed, the raster output is then transformed into a [COG (Cloud Optimized GeoTiff)](https://www.cogeo.org/) with extra compression applied. With lossless compression applied (COMPRESSION=LZW, PREDICTOR=2), the COG is half the size of the snappy output, but about 25% larger than the equivalent standard geotiff with the same compression flags applied. The benefit is a format that is much faster to load for programs that properly understand it (QGIS, ArcGIS Pro, Rasterio etc), while still being backwards compatible with older software. My experience is that loading a standard 1-2GB raster into QGIS will take quite some time, whereas a COG will load almost immediatly, and will zoom, pan, and perform local histogram stretches MUCH faster.
 
 ## References
 
