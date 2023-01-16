@@ -24,7 +24,7 @@ TODO
 TODO
 
 Snappy by default doesnt good compresion to the geotiff, so once the snappy processing is completed, the raster output is then transformed into a [COG (Cloud Optimized GeoTiff)](https://www.cogeo.org/) with extra compression applied. With lossless compression applied (`COMPRESSION=LZW, PREDICTOR=2`), the COG is half the size of the snappy output, but about 15-25% larger than the equivalent standard geotiff with the same compression flags applied.   
-The benefit is a format that it is much faster to load for programs that properly understand it (QGIS, ArcGIS Pro, Rasterio etc), while still being backwards compatible with older software. My experience is that loading a standard 1-2GB raster into QGIS will take quite some time, whereas a COG will load almost immediatly, and will zoom, pan, and perform local histogram stretches MUCH faster.
+The benefit of the format is that it is much faster to load for programs that properly understand it (QGIS, ArcGIS Pro, Rasterio, etc.), while still being backwards compatible with older software. My experience is that loading a standard 1-2GB Sentinel-1 raster into QGIS will take quite some time, whereas a COG will load almost immediatly, and will zoom, pan, and perform local histogram stretches MUCH faster.
 
 ## References
 
