@@ -20,7 +20,7 @@ log.setLevel(logging.INFO)
 
 #TODO: Move this to config
 
-data_directory = '/home/leight/LANDGATE/data/S1_data'
+data_directory = '/data/S1_data'
 raw_data_path = os.path.join(data_directory, 'data_raw')
 final_data_path = os.path.join(data_directory, 'data_processed')
 
