@@ -25,7 +25,9 @@ log.setLevel(logging.INFO)
 
 
 def pre_checks(
-        filename, raw_data_path, shapefile_path, do_subset_from_shapefile, final_data_path,
+        filename, filelist,
+        raw_data_path,
+        shapefile_path, do_subset_from_shapefile, final_data_path,
         archive_data_path, do_archive_data
         ):
     """perform directory structure check
@@ -37,6 +39,13 @@ def pre_checks(
     # checking paths
     cwd = os.getcwd()
     log.debug("Checking data directories")
+
+    if(filename and filelist):
+        log.error("Please only give one of filename or filelist")
+        return -1
+    if not (filename or filelist):
+        log.error("Please give at least one of filename or filelist")
+        return -1
 
     if not os.path.exists(os.path.join(cwd, "data/config.py")):
         log.error("could not find config file in data/config.py")
@@ -263,3 +272,33 @@ def subset_from_shapefile(source, shapefile_path=None):
     output = subset_from_polygon(source, wkt)
 
     return output
+
+
+def check_file_processed(fname, final_data_path="./data/data_processed/", zip_file_given=True):
+    """ Checks if a file has already been processed """
+    from os.path import join, basename, isfile
+    import re
+    fname = basename(fname)
+    if(zip_file_given):
+        fname = re.sub('(.zip)$', '_processed.tif', fname)
+    meta_dir = join(final_data_path, '.processed')
+    file_suffix = '.done'
+    meta_file_exists = isfile(join(meta_dir, fname + file_suffix))
+    og_file_exists =  isfile(join(final_data_path, fname))
+    if(meta_file_exists and og_file_exists):
+        return True
+    else:
+        return False
+
+
+def create_proc_metadata(fname, final_data_path="./data/data_processed/", zip_file_given=False):
+    """ Creates metadata that the file has been processed for future use in '.processed'. """
+    from os.path import join, basename, isfile
+    from pathlib import Path
+    import re
+    fname = basename(fname)
+    if(zip_file_given):
+        fname = re.sub('(.zip)$', '_processed.tif', fname)
+    meta_dir = join(final_data_path, '.processed')
+    Path(join(meta_dir, fname+'.done')).touch()
+    return
