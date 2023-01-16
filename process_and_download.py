@@ -9,6 +9,7 @@ Creation Date: 2023-01-13
 """
 import logging
 import click
+import os
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -17,10 +18,60 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
+#TODO: Move this to config
+
+data_directory = '/home/leight/LANDGATE/data/S1_data'
+raw_data_path = os.path.join(data_directory, 'data_raw')
+final_data_path = os.path.join(data_directory, 'data_processed')
+
+# TODO move search criteria to config file
+bounds = [116.29493,-20.55255, 117.77237,-21.55667]
+geo = {"lonmin": bounds[0], "latmin": bounds[1], "lonmax": bounds[2], "latmax": bounds[3]}
+
+search_criteria = {
+    "productType": "S1_SAR_GRD",
+    "start": "2021-01-20",
+    "end": "2021-02-20",
+    "sensorMode": "IW",
+    "geom": geo
+}
+
+def check_file_processed(fname, final_data_path="./data/data_processed/", zip_file_given=False):
+    """ Checks if a file has already been processed """
+    from os.path import join, basename, isfile
+    import re
+    fname = basename(fname)
+    if(zip_file_given):
+        fname = re.sub('(.zip)$', '_processed.tif', fname)
+    meta_dir = join(final_data_path, '.processed')
+    file_suffix = '.done'
+    meta_file_exists = isfile(join(meta_dir, fname + file_suffix))
+    og_file_exists =  isfile(join(final_data_path, fname))
+    if(meta_file_exists and og_file_exists):
+        return True
+    else:
+        return False
+
+
+def create_proc_metadata(fname, final_data_path="./data/data_processed/", zip_file_given=False):
+    """ Creates metadata that the file has been processed for future use in '.processed'. """
+    from os.path import join, basename, isfile
+    from pathlib import Path
+    import re
+    fname = basename(fname)
+    if(zip_file_given):
+        fname = re.sub('(.zip)$', '_processed.tif', fname)
+    meta_dir = join(final_data_path, '.processed')
+    Path(join(meta_dir, fname+'.done')).touch()
+    return
+
 def run_docker_container(filename=None, file_list=None, data_directory='data', config_override=False, **kwargs):
-    # Runs the docker container with appropriate cmdline arguments
-    # Allows for data_directory to be passed
-    # config_override will overwrite the config file if it exists
+    """
+    Runs the docker container with appropriate cmdline arguments
+    Allows for data_directory to be passed
+    config_override will overwrite the config file if it exists
+    It will log the stdout of the docker container
+    """
     from subprocess import Popen, PIPE, STDOUT
     import logging
     from os.path import join, isfile
@@ -62,7 +113,7 @@ def run_docker_container(filename=None, file_list=None, data_directory='data', c
     except shutil.SameFileError:
         pass
     log.info(['-'*50])
-    log.info([f'    Processing file {file}  '])
+    log.info([f'    Processing file {filename}  '])
     process = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
     with process.stdout:
         log_subprocess_output(process.stdout)
@@ -189,10 +240,10 @@ def main():
     import os
     import logging
     code_dir = os.getcwd()
-
-    data_directory = '/home/leight/LANDGATE/data/S1_data'
-    raw_data_path = os.path.join(data_directory, 'data_raw')
-    final_data_path = os.path.join(data_directory, 'data_processed')
+    #
+    # data_directory = '/home/leight/LANDGATE/data/S1_data'
+    # raw_data_path = os.path.join(data_directory, 'data_raw')
+    # final_data_path = os.path.join(data_directory, 'data_processed')
     os.makedirs(raw_data_path, exist_ok=True)
 
     os.environ["EODAG__SARA__DOWNLOAD__OUTPUTS_PREFIX"] = os.path.abspath(raw_data_path)
@@ -200,7 +251,7 @@ def main():
     import getpass # Python password library
 
     os.environ["EODAG__SARA__AUTH__CREDENTIALS__USERNAME"] = input("Please enter your SARA username, then press ENTER (not SHIFT+ENTER)")
-    os.environ["EODAG__SARA__AUTH__CREDENTIALS__PASSWORD"] = getpass.getpass("Enter your password for SARA then press enter (not SHIFT+ENTER)")
+    os.environ["EODAG__SARA__AUTH__CREDENTIALS__PASSWORD"] = getpass.getpass("Enter your password for SARA then press enter (not SHIFT+ENTER). The password will not be shown. Passwd:")
 
     from eodag import EODataAccessGateway
     from eodag import setup_logging
@@ -211,27 +262,13 @@ def main():
 
     dag.set_preferred_provider("sara")
 
-    # ---------------------------
-    # TODO move search criteria to config file
-    bounds = [116.29493,-20.55255, 117.77237,-21.55667]
-    geo = {"lonmin": bounds[0], "latmin": bounds[1], "lonmax": bounds[2], "latmax": bounds[3]}
+    search_results = dag.search_all(**search_criteria) # This should log the number of search results
 
-    search_criteria = {
-        "productType": "S1_SAR_GRD",
-        "start": "2021-01-20",
-        "end": "2021-03-10",
-        "sensorMode": "IW",
-        "geom": geo
-    }
-    # ------------------------------------------------------
-
-    search_results = dag.search_all(**search_criteria)
-
-    for result in results:
+    for result in search_results:
         process_result(result)
 
 
-if __name__ == __main__:
+if __name__ == "__main__":
     # Load config & setup
     main()
 
