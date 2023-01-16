@@ -1,7 +1,7 @@
 # Landgate-ASDAF project
 ### Sentinel-1 image pre-processing pipeline
 Author(s):
-- Leigh Ters
+- Leigh Tyers (leigh.tyers@curtin.edu.au)
 - Foad Farivar (foad.farivar@curtin.edu.au)
 
 ## Contents
