@@ -30,20 +30,25 @@ It also now allows command line input. Try the `--help` option when launching th
 **(The order of execution can be changed in `main.py`)** 
 
 ## Setup steps (Docker)
-(a) Clone this repository to your local directory: `git clone git@github.com:CurtinIC/landgate.git` and then `cd snappy_processing`.
+(a) Clone this repository to your local directory: `git clone git@github.com:CurtinIC/landgate.git` and then `cd landgate/snappy_processing`.
 
 (b) Check the config file (`./data/config.py`) to set/change the pipeline parameters.
 
-(c) Build the docker image: `docker build -t landgate:{version} .`.
+(c) Build the docker image with user_id arguments:
+    ```
+    docker build -t landgate \
+  --build-arg USER_ID=$(id -u) \
+  --build-arg GROUP_ID=$(id -g) .
+  ```
 
 (d) Copy the row .zip files to raw_data_path (by default in `./data/data_raw`).
 
-(e) Run the docker image: `docker run --rm -it -v ${PWD}/data/:/app/data landgate:{version}`.
+(e) Run the docker image: `docker run --rm -it -v <directory with "data_raw">:/app/data landgate`.
 
 (f) The final processed image will be saved in final_data_path (by default in `./data/data_processed`)
 
 ## Setup steps (Conda)
-(a) Clone this repository to your local directory: `git clone git@github.com:CurtinIC/landgate.git` and then `cd snappy_processing`.
+(a) Clone this repository to your local directory: `git clone git@github.com:CurtinIC/landgate.git` and then `cd landgate/snappy_processing`.
 
 (b) Check the config file (`./data/config.py`) to set/change the pipeline parameters.
 
