@@ -23,7 +23,7 @@ search_criteria = {
 }
 
 # The std_out will be logged here
-log_fname = "debug.log"
+log_fname = "/data/S1_data/debug.log"
 
 
 ### Below are relative directories for the docker container.           ####
