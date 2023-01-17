@@ -10,6 +10,7 @@ Creation Date: 2023-01-13
 import logging
 import click
 import os
+from main_config import data_directory, bounds, search_criteria
 
 code_dir = os.getcwd()
 
@@ -20,23 +21,10 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
-#TODO: Move this to config
 
-data_directory = '/data/S1_data'
 raw_data_path = os.path.join(data_directory, 'data_raw')
 final_data_path = os.path.join(data_directory, 'data_processed')
 
-# TODO move search criteria to config file
-bounds = [116.29493,-20.55255, 117.77237,-21.55667]
-geo = {"lonmin": bounds[0], "latmin": bounds[1], "lonmax": bounds[2], "latmax": bounds[3]}
-
-search_criteria = {
-    "productType": "S1_SAR_GRD",
-    "start": "2021-01-20",
-    "end": "2021-02-20",
-    "sensorMode": "IW",
-    "geom": geo
-}
 
 def check_file_processed(fname, final_data_path="./data/data_processed/", zip_file_given=False):
     """ Checks if a file has already been processed """
@@ -84,11 +72,11 @@ def run_docker_container(filename=None, file_list=None, data_directory='data', c
 
 
     def log_subprocess_output(pipe):
-        for line in iter(pipe.readline, b''): # b'\n'-separated lines
-            log.info(line)
+        for line in iter(pipe.readline, ''): # -separated lines
+            log.info("Docker Output: " + line.decode().rstrip())
 
     run_dir = os.path.abspath(data_directory)
-    cmd = f'docker run --rm -u 1000:1000 -v {run_dir}/:/app/data landgate:0.3 '
+    cmd = f'docker run --rm -v {run_dir}/:/app/data landgate '
 
     if(file_list):
         cmd+=" --filelist 'data/files_to_process.txt'"
