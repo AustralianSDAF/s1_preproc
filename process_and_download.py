@@ -11,6 +11,8 @@ import logging
 import click
 import os
 
+code_dir = os.getcwd()
+
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
@@ -85,7 +87,8 @@ def run_docker_container(filename=None, file_list=None, data_directory='data', c
         for line in iter(pipe.readline, b''): # b'\n'-separated lines
             log.info(line)
 
-    cmd = f"docker run --rm -v {os.path.abspath(data_directory)}/:/app/data landgate:0.3"
+    run_dir = os.path.abspath(data_directory)
+    cmd = f'docker run --rm -u 1000:1000 -v {run_dir}/:/app/data landgate:0.3 '
 
     if(file_list):
         cmd+=" --filelist 'data/files_to_process.txt'"
@@ -109,7 +112,7 @@ def run_docker_container(filename=None, file_list=None, data_directory='data', c
     try:
         if((not isfile(join(data_directory, 'config.py'))) or config_override):
             os.makedirs(data_directory, exist_ok=True)
-            shutil.copy(join(code_dir, 'data', 'config.py'), data_directory)
+            shutil.copy(join(code_dir, 'data', 'snappy_config.py'), join(data_directory, 'config.py'))
     except shutil.SameFileError:
         pass
     log.info(['-'*50])
@@ -122,7 +125,7 @@ def run_docker_container(filename=None, file_list=None, data_directory='data', c
     if(not exitcode):
         log.info("    Exitcode 0, docker container success")
     else:
-        log.error(f"    Exitcode nonzero for file: {file}")
+        log.error(f"    Exitcode nonzero for file: {filename}")
         log.error(f"    Exitcode was: {exitcode}")
 
 

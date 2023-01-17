@@ -21,12 +21,14 @@ This package is composed of two parts, a processing tool and a downloading tool.
 TODO
 
 ## Processing tool
-TODO
+### Snappy processing
+The processing tool first uses snappy. As snappy requires python 3.6 (which is incompatible with the downloading tool, a docker image is built. See [snappy_processing/README.md](snappy_processing/README.md) for steps on how to set up the docker container. Docker should be included on the Nimbus ubuntnu 22.04 image.  
 
-Snappy by default doesnt good compresion to the geotiff, so once the snappy processing is completed, the raster output is then transformed into a [COG (Cloud Optimized GeoTiff)](https://www.cogeo.org/) with extra compression applied. With lossless compression applied (`COMPRESS=LZW, PREDICTOR=2`), the COG is half the size of the snappy output, but about 15-25% larger than the equivalent standard geotiff with the same compression flags applied.   
+### GDAL Processing
+Snappy by default doesnt apply adequate compresion to the geotiff, so once the snappy processing is completed, the raster output is then transformed into a [COG (Cloud Optimized GeoTiff)](https://www.cogeo.org/) with extra lossless compression applied. With lossless compression applied (`COMPRESS=LZW, PREDICTOR=2`), the COG is half the size of the snappy output, but about 15-25% larger than the equivalent standard geotiff with the same compression flags applied.   
 The benefit of the format is that it is much faster to load for programs that properly understand it (QGIS, ArcGIS Pro, Rasterio, etc.), while still being backwards compatible with older software. My experience is that loading a standard 1-2GB Sentinel-1 raster into QGIS will take quite some time, whereas a COG will load almost immediatly, and will zoom, pan, and perform local histogram stretches MUCH faster.
 
-## Notes
+## General Notes
 The docker iamge is currently re-launched every time a file is needed to be processed. Experimenting with keeping it open to process everything did not yield a significant time saving, despite the small amount of overhead of launching snappy over and over again.
 The largest reasons for this are:
 - The overhead for launching snappy is relatively small compared with the processing time
