@@ -1,6 +1,13 @@
 #!/bin/env/python
 ### Please DO NOT change the relative directory of this config file ####
 
+### NB: THIS CONFIG FILE IS HERE FOR TESTING PURPOSES.
+### CHANGING THIS WILL NOT CHANGE THE
+### FUNCTIONALITY OF THE DOCKER IMAGE.
+###
+### INSTEAD< CHANGE "../main_config.py". THAT CONFIG FILE
+### WILL BE MOVED TO THE APPROPRIATE DIRECTORY WHEN RUN IN DOCKER
+
 #=======================================================================
 # S1 downloaded files directory (relative to CWD paths)
 raw_data_path = "./data/data_raw/"
