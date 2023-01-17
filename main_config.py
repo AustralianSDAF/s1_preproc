@@ -1,0 +1,140 @@
+#!/bin/env/python
+
+#=======================================================================
+# Non-docker stuff options you'd likely want to actually change
+
+# Directory to save files to
+data_directory = '/data/S1_data'
+
+bounds = [116.29493,-20.55255, 117.77237,-21.55667]
+
+start_date = "2021-01-20"
+end_date = "2021-02-20"
+
+# You shouldnt need to change the search options below.
+geo = {"lonmin": bounds[0], "latmin": bounds[1], "lonmax": bounds[2], "latmax": bounds[3]}
+
+search_criteria = {
+    "productType": "S1_SAR_GRD",
+    "start": start_date,
+    "end": end_date,
+    "sensorMode": "IW",
+    "geom": geo
+}
+
+# The std_out will be logged here
+log_fname = "debug.log"
+
+
+### Below are relative directories for the docker container.           ####
+### Please DO NOT change these paths without knowing what you're doing ####
+### These paths are relative for the docker container to use, and      ####
+### may not reflect real paths.                                        ####
+#=======================================================================
+# S1 downloaded files directory (relative to entrypoint paths)
+raw_data_path = "./data/data_raw/"
+
+# Path to save final processed data (relative to entrypoint paths)
+final_data_path = "./data/data_processed/"
+
+# Path to archive the processed raw data (relative to entrypoint paths)
+archive_data_path = "./data/data_archived/"
+
+
+
+
+### Below are the pre-processing config options          ####
+### Feel free to change them as you want to,             ####
+### but the defaults should work well enough             ####
+#=======================================================================
+# pre-processing steps
+#=======================================================================
+
+do_apply_orbit_file = True
+# parameters - Assigne None if you do not want to set a parameter
+apply_orbit_file_param = {
+    'orbitType' : 'Sentinel Precise (Auto Download)',
+    'polyDegree' : '3',
+    'continueOnFail' : False,
+    }
+#=======================================================================
+
+do_speckle_filtering = True
+# parameters - Assigne None if you do not want to set a parameter
+speckle_filtering_param = {
+    'sourceBands' : 'Sigma0_VV',
+    'filter' : 'Lee',
+    'filterSizeX' : '5',
+    'filterSizeY' : '5',
+    'dampingFactor' : '2',
+    'estimateENL' : True,
+    'enl' : '1.0',
+    'numLooksStr' : '1',
+    'windowSize' : None,
+    'targetWindowSizeStr' : '3x3',
+    'sigmaStr' : '0.9',
+    'anSize' : '50'
+    }
+#=======================================================================
+
+do_calibration = True
+# parameters - Assigne None if you do not want to set a parameter
+calibration_param = {
+    'sourceBands' : 'Intensity_VV',
+    'outputImageScaleInDb' :  False,
+    'selectedPolarisations' : 'VV',
+    'outputSigmaBand' : True,
+    }
+#=======================================================================
+
+do_thermal_noise_removal = True
+# parameters - Assigne None if you do not want to set a parameter
+thermal_noise_removal_param = {
+    'removeThermalNoise' : True
+    }
+#=======================================================================
+
+do_terrain_correction = True
+# parameters - Assigne None if you do not want to set a parameter
+terrain_correction_param = {
+    'sourceBands' : 'Sigma0_VV',
+    'demName' : 'SRTM 3Sec',
+    'imgResamplingMethod' : None,
+    'mapProjection' : None,
+    'pixelSpacingInMeter' : 10.0,
+    'saveProjectedLocalIncidenceAngle' : None
+    }
+#=======================================================================
+
+do_grd_border_noise = True
+# parameters - Assigne None if you do not want to set a parameter
+grd_border_noise_param = {
+    'trimThreshold' : 0.5,
+    'borderLimit' : 1000
+    }
+#=======================================================================
+# If using the scrip process_and_download.py, you should keep these as False,
+# unless you want a hard override (but I cant guarentee that it would work)
+do_subset_from_polygon = False
+polygon_param = 'POLYGON ((125.54647 -17.94607, \
+                            125.54647 -18.97182, \
+                            126.12290 -18.97182, \
+                            126.12290 -17.94607, \
+                            125.54647 -17.94607))'
+
+
+do_subset_from_shapefile = False
+shapefile_path = "./data/data_raw/island_boundary2.shp"
+#=======================================================================
+
+write_file_format = "GeoTIFF"
+# Allowed formats to write: GeoTIFF-BigTIFF,HDF5,Snaphu,BEAM-DIMAP,
+# GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,
+# Generic Binary BSQ,Gamma,CSV,NetCDF4-CF,GeoTIFF,NetCDF4-BEAM"
+
+#archive raw_data after processing is done?
+do_archive_data = False
+#
+#=======================================================================
+# -------------------End of config file---------------------------------
+#=======================================================================

@@ -10,16 +10,25 @@ Creation Date: 2023-01-13
 import logging
 import click
 import os
+import sys
 from main_config import data_directory, bounds, search_criteria
+from main_config import log_fname
 
 code_dir = os.getcwd()
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
+    handlers=[
+        logging.FileHandler(log_fname),
+        logging.StreamHandler(sys.stdout)
+    ],
     datefmt='%Y-%m-%d %H:%M:%S')
 log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
+log.info("Beggining log for new program run, inserting lines for visual clarity" + "\n"*6)
+log.info("New program run:")
+log.info("="*60)
+
 
 
 raw_data_path = os.path.join(data_directory, 'data_raw')
@@ -72,8 +81,9 @@ def run_docker_container(filename=None, file_list=None, data_directory='data', c
 
 
     def log_subprocess_output(pipe):
-        for line in iter(pipe.readline, ''): # -separated lines
-            log.info("Docker Output: " + line.decode().rstrip())
+        # need to read output as bytes, so encode + concat then decode or a bug printing blank lines occurs. No idea why
+        for line in iter(pipe.readline, b''):
+            log.info(("Docker Output: ".encode() + line.rstrip()).decode())
 
     run_dir = os.path.abspath(data_directory)
     cmd = f'docker run --rm -v {run_dir}/:/app/data landgate '
@@ -96,11 +106,11 @@ def run_docker_container(filename=None, file_list=None, data_directory='data', c
         else:
             cmd += f"  --{key} '{val}'"
     log.info(cmd)
-    # Check if config file is in directory
+    # The docker image needs a local copy of config in the appropriate directory.
     try:
         if((not isfile(join(data_directory, 'config.py'))) or config_override):
             os.makedirs(data_directory, exist_ok=True)
-            shutil.copy(join(code_dir, 'data', 'snappy_config.py'), join(data_directory, 'config.py'))
+            shutil.copy(join(code_dir, 'main_config.py'), join(data_directory, 'config.py'))
     except shutil.SameFileError:
         pass
     log.info(['-'*50])
@@ -190,7 +200,7 @@ def process_result(result, data_directory=data_directory, del_intermediate=True)
     import re
     from os.path import join, basename
 
-    log.info("-"*20)
+    log.info("-"*40)
     log.info(f"Starting download for result {result.properties['title']}")
     fname = result.download(extract=False)
 
@@ -202,11 +212,11 @@ def process_result(result, data_directory=data_directory, del_intermediate=True)
         log.info(f'Skipping processing {cog_fname} as it already exists.')
         return
 
-    log.info("-"*20)
+    log.info("-"*40)
     log.info(f"   Starting snappy processing for result {result.properties['title']}")
     run_docker_container(fname, data_directory=data_directory)
 
-    log.info("-"*20)
+    log.info("-"*40)
     log.info(f"   Starting cog reformatting for result {result.properties['title']}")
     if(not os.path.isfile(fpath_proc)):
         log.error(f" File {fpath_proc} does not exist.")
@@ -230,6 +240,10 @@ def process_result(result, data_directory=data_directory, del_intermediate=True)
 def main():
     import os
     import logging
+    from eodag import EODataAccessGateway
+    from eodag import setup_logging
+    from eodag.utils.exceptions import AuthenticationError
+    import getpass # Python password library
     code_dir = os.getcwd()
     #
     # data_directory = '/home/leight/LANDGATE/data/S1_data'
@@ -239,13 +253,10 @@ def main():
 
     os.environ["EODAG__SARA__DOWNLOAD__OUTPUTS_PREFIX"] = os.path.abspath(raw_data_path)
 
-    import getpass # Python password library
 
     os.environ["EODAG__SARA__AUTH__CREDENTIALS__USERNAME"] = input("Please enter your SARA username, then press ENTER (not SHIFT+ENTER)")
     os.environ["EODAG__SARA__AUTH__CREDENTIALS__PASSWORD"] = getpass.getpass("Enter your password for SARA then press enter (not SHIFT+ENTER). The password will not be shown. Passwd:")
 
-    from eodag import EODataAccessGateway
-    from eodag import setup_logging
 
     setup_logging(verbose=2)
 
@@ -256,7 +267,29 @@ def main():
     search_results = dag.search_all(**search_criteria) # This should log the number of search results
 
     for result in search_results:
-        process_result(result)
+        log.info("="*60)
+        log.info("Now processing file {result.properties[]}")
+        try:
+            process_result(result)
+        except AuthenticationError as e:
+            log.error("="*60)
+            log.error( "***AUTHENTICATION ERROR***")
+            log.error("Authentication provided likely is not correct.")
+            log.error("Processing will attempt to continue just")
+            log.error("in case files are already present.")
+            log.error("If this isnt wanted, CTRL + C out.")
+            log.exception("The exception is: ")
+            log.error("End of exception")
+            log.error("="*60)
+        except Exception:
+            log.error("="*60)
+            log.exception(f"Non exit exception caught. Program will try again in case it was a timeout.")
+            log.exception("Exception is:")
+            log.error("End of exception")
+            log.error("="*60)
+            log.error("Now trying again...")
+            process_result(result)
+
 
 
 if __name__ == "__main__":
