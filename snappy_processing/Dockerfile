@@ -5,6 +5,10 @@ FROM ubuntu:18.04
 # I've tried compiling a wheels of jpy (the dependency stuck at 3.6) for Python 3.7,
 # But have not had any luck with getting said wheel to then work with installation.
 
+
+ARG USER_ID
+ARG GROUP_ID
+
 ENV DEBIAN_FRONTEND noninteractive
 USER root
 
@@ -72,5 +76,12 @@ RUN export LANG=C.UTF-8
 
 #copy project
 COPY . .
+
+RUN echo $GROUP_ID
+RUN echo echo $USER_ID
+RUN addgroup ubuntu --gid $GROUP_ID
+RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID ubuntu
+
+USER ubuntu
 
 ENTRYPOINT [ "/usr/bin/python3", "main.py" ]
