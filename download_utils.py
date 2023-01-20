@@ -4,7 +4,7 @@
 #
 # ===========================================================
 #
-# This file is derived from the EODAG project
+# This file is partly derived from the EODAG project
 #     https://www.github.com/CS-SI/EODAG
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,9 @@
 #
 
 import logging
+from main_config import log_fname
+import sys
+import os
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -86,6 +89,8 @@ def declare_downloaded(product, raw_data_path):
 
 def download_product_thredds(product, raw_data_path):
     """ A custom downloader for when download_from_thredds=True. Will check if a file has already been downloaded"""
+    from eodag.utils import ProgressCallback
+    import requests
     fs_path = get_fpath(product, raw_data_path)
     if(product_downloaded(product, raw_data_path)):
         log.info(f"Product already downloaded: {fs_path}")
@@ -116,6 +121,9 @@ def product_downloaded(product, raw_data_path):
     eodag_url = product.remote_location
     url_hash = hashlib.md5(eodag_url.encode("utf-8")).hexdigest()
     return os.path.isfile(join(raw_data_path, '.downloaded', url_hash))
+
+
+
 
 
 if __name__ == "__main__":

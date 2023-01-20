@@ -25,6 +25,9 @@ search_criteria = {
 # The std_out will be logged here
 log_fname = "/data/S1_data/debug.log"
 
+# Delete intermediate files in the processing (ie raw output of snappy)
+del_intermediate = True
+
 
 ### Below are relative directories for the docker container.           ####
 ### Please DO NOT change these paths without knowing what you're doing ####
@@ -40,7 +43,7 @@ final_data_path = "./data/data_processed/"
 # Path to archive the processed raw data (relative to entrypoint paths)
 archive_data_path = "./data/data_archived/"
 
-
+download_from_thredds = False
 
 
 ### Below are the pre-processing config options          ####
