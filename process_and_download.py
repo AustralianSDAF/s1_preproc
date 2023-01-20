@@ -11,6 +11,7 @@ import logging
 import click
 import os
 import sys
+
 from main_config import log_fname
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -21,12 +22,6 @@ logging.basicConfig(
     ],
     datefmt='%Y-%m-%d %H:%M:%S')
 log = logging.getLogger(__name__)
-
-
-log.info("Beggining log for new program run, inserting lines for visual clarity" + "\n"*6)
-log.info("New program run:")
-log.info("="*60)
-
 
 
 
@@ -322,6 +317,11 @@ def main():
     from main_config import bounds
     from main_config import search_criteria
     from main_config import del_intermediate
+
+
+    log.info("Beggining log for new program run, inserting lines for visual clarity" + "\n"*6)
+    log.info("New program run:")
+    log.info("="*60)
     run_all(
         download_from_thredds=download_from_thredds,
         data_directory=data_directory,
