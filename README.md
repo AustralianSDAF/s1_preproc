@@ -9,8 +9,8 @@ Author(s):
 - [Setup](#setup)
 - [Downloading tool](#downloading-tool)
 - [Processing tool](#processing-tool)
-- [Notes](#notes)
 - [References](#references)
+- [Manually setting up a NimbusVM](#manually-setting-up-a-nimbusvm)
 ___
 
 ## Overview
@@ -18,21 +18,13 @@ A python repository for automatically acquiring and processing Sentinel 1 imager
 
 This package is composed of two parts, a processing tool and a downloading tool. The downloading tool requires python >= 3.7 , while the processing tool requires python==3.6 (as of writing, python 3.6 has been depreciated). This discrepency is solved by building a docker image for the processing tool, which is called from the overarching python 3.10 script.
 
-## Downloading tool
-The downloading tool used is [eodag](https://eodag.readthedocs.io/en/stable/). EODAG allows easy authentication, searching, and downloading of a variety of data products from multiple providers. As of writing, [SARA (Sentinel Australasia Regional Access)](https://copernicus.nci.org.au/sara.client/) is only supported in the latest development branch, and is not yet a release. To install it, simply run:
-```
-python -m pip install git+https://github.com/CS-SI/eodag.git@develop
-```
-Unfortunately, as mentioned above, it seems to need a version of requests which needs python>=3.7 (python 3.6 is now depreciated).
 
-For more information on how to use EODAG, see te [API user guide overview](https://eodag.readthedocs.io/en/stable/notebooks/api_user_guide/1_overview.html).
 
 ## Setup
-There are currently two ways to set up the program:
-1. Using the pre-made Nimbus image to set up a VM. See [Using the Pre-Made Image](#using-the-pre-made-image)
-2. Manually settting up the Nimbus VM. See [Manually setting up a NimbusVM](#manually-setting-up-a-nimbusvm)
+There is currently one way to set up the program:
+1. Manually settting up the Nimbus VM. See [Manually setting up a NimbusVM](#manually-setting-up-a-nimbusvm)
 
-Once the program is set up, you can set it to automatically run by with `cron` running `crontab -e`
+Once the program is set up, you can set it to automatically run with `cron` by running `crontab -e`
 and inserting the following lines:
 ```
 SHELL=/bin/bash
@@ -43,11 +35,54 @@ This will set the program once every 2 hours, using the conda/mamba environment 
 
 If you want to change the time between re-launch attempts, change `* */2 * * *` at the start of the third line to the equivalent cron schedule (you can see what you want command you may want for what cycle here https://crontab.guru/)
 
+## Usage
+First, edit main_config.py for your preferred configueration options.
+Of particular importance are the following options:
+```
+data_directory = '/data/S1_data'
 
+bounds = [116.29493,-20.55255, 117.77237,-21.55667]
+
+start_date = "2021-01-20"
+end_date = "2021-02-20"
+...
+
+# The std_out will be logged here
+log_fname = "/data/S1_data/debug.log"
+
+# Delete intermediate files in the processing (ie raw output of snappy)
+del_intermediate = True
+
+# Whether or not to download files from THREDDS
+download_from_thredds = True
+
+```
+Set these as you wish.
+- `data_directory` is the directory all the files will be downlaoded to and processed in.
+- `start_date` and `end_date` are the start and end dates to search from. These are in the format YEAR-MONTH-DAY If you want to use find all products from a given date to the present, set end_date to `2100-01-01`. Unfortunately a type issue currently prevents using a larger number such as `3000-01-01
+
+Once in the appropriate conda environment (if you used base, then the base environment is fine), run:
+```
+python3 process_and_download.py
+```
+- log_fname must exist, so if you need to just `mkdir data/S1_data && touch /data/S1_data/debug.log`
+- if you set `download_from_thredds = False` you will be prompted for login information to authenticate with your registered SARA username/email and password
+
+# Specifics
+## Downloading tool
+The downloading tool used is [eodag](https://eodag.readthedocs.io/en/stable/). EODAG allows easy authentication, searching, and downloading of a variety of data products from multiple providers. As of writing, [SARA (Sentinel Australasia Regional Access)](https://copernicus.nci.org.au/sara.client/) is only supported in the latest development branch, and is not yet a release. To install it, simply run:
+```
+python -m pip install git+https://github.com/CS-SI/eodag.git@develop
+```
+Unfortunately, as mentioned above, it seems to need a version of requests which needs python>=3.7 (python 3.6 is now depreciated).
+
+For more information on how to use EODAG, see the [API user guide overview](https://eodag.readthedocs.io/en/stable/notebooks/api_user_guide/1_overview.html).
 
 ## Processing tool
 ### Snappy processing
 The processing tool first uses snappy. As snappy requires python 3.6 (which is incompatible with the downloading tool), a docker image is built. See [snappy_processing/README.md](snappy_processing/README.md) for steps on how to set up the docker container. Docker should be included on the Nimbus ubuntnu 22.04 image.
+
+
 
 ### GDAL Processing
 Snappy by default doesnt apply adequate compresion to the geotiff, so once the snappy processing is completed, the raster output is then transformed into a [COG (Cloud Optimized GeoTiff)](https://www.cogeo.org/) with extra lossless compression applied. With lossless compression applied (`COMPRESS=LZW, PREDICTOR=2`), the COG is half the size of the snappy output, but about 15-25% larger than the equivalent standard geotiff with the same compression flags applied.
@@ -68,7 +103,7 @@ For these reasons, the processing is currently done per file, by:
 
 This was done to preserve modularity, and to more easily understand the progress of the program when processing a large number of files.
 
-## TODO
+## Wishlist
 Future steps to increase the perfomance of the program include:
 - [ ] Having a separate thread to download and process files, such that something is always being downloaded at any given time. This would perhaps involve launching a thread after each product is downloaded to process the product. There may be some issues with snappy needing to download additional materials at the same time, but there would likely be time savings due to almost always having something being downloaded (and the downloading, even at the speeds nimbus achieves, being the limiting factor).
 - [ ] An option to merge nearby data products across boundaries for better viewing
@@ -78,7 +113,7 @@ Future steps to increase the perfomance of the program include:
 - [ ] Script to create & remove cronjob (currently just manually done)
 
 ## Using the pre-made image
-TODO
+Unfortunately, this is not currently done yet.
 
 ## Manually setting up a NimbusVM
 If for whatever reason you need to manually set up a nimubs VM, the steps are as follows:
