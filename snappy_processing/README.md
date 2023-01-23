@@ -35,11 +35,11 @@ It also now allows command line input. Try the `--help` option when launching th
 (b) Check the config file (`./data/config.py`) to set/change the pipeline parameters.
 
 (c) Build the docker image with user_id arguments:
-    ```
+```
     docker build -t landgate \
   --build-arg USER_ID=$(id -u) \
   --build-arg GROUP_ID=$(id -g) .
-  ```
+```
 
 (d) Copy the row .zip files to raw_data_path (by default in `./data/data_raw`).
 
