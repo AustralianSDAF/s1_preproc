@@ -84,7 +84,7 @@ The processing tool first uses snappy. As snappy requires python 3.6 (which is i
 
 Currently the snappy processing will do the following:
 - Apply the orbit file
-- Do speckle filtering
+- Speckle filtering
 - Radiometric calibration
 - Thermal Noise removal
 - Terrain Correction
