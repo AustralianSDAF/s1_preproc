@@ -41,7 +41,7 @@ BASH_ENV=~/.bashrc_conda
 ```
 This will set the program once every 2 hours, using the conda/mamba environment `base`, but only if the same command isnt already running (ie if it's processing and taking some time, it wont relaunch itself).   
 
-If you want to change the time it takes to run, change `* */2 * * *` at the start of the third line to the equivalent cron schedule (you can see what you want command you may want for what cycle here https://crontab.guru/)
+If you want to change the time between re-launch attempts, change `* */2 * * *` at the start of the third line to the equivalent cron schedule (you can see what you want command you may want for what cycle here https://crontab.guru/)
 
 
 
