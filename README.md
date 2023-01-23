@@ -32,6 +32,18 @@ There are currently two ways to set up the program:
 1. Using the pre-made Nimbus image to set up a VM. See [Using the Pre-Made Image](#using-the-pre-made-image)
 2. Manually settting up the Nimbus VM. See [Manually setting up a NimbusVM](#manually-setting-up-a-nimbusvm)
 
+Once the program is set up, you can set it to automatically run by with `cron` running `crontab -e`
+and inserting the following lines:
+```
+SHELL=/bin/bash
+BASH_ENV=~/.bashrc_conda
+*/30 * * * * run-one conda run --no-capture-output -n base python3 /home/ubuntu/code/landgate/process_and_download.py
+```
+This will set the program once every 30 minutes, using the environment `base`, but only if the same command isnt already running (ie if it's processing and taking some time, it wont relaunch itself).   
+
+If you want to change the time it takes to run, change `*/30 * * * *` at the start of the third line to the equivalent cron schedule (you can see what you want command you may want for what cycle here https://crontab.guru/)
+
+
 
 ## Processing tool
 ### Snappy processing
@@ -42,11 +54,11 @@ Snappy by default doesnt apply adequate compresion to the geotiff, so once the s
 The benefit of the format is that it is much faster to load for programs that properly understand it (QGIS, ArcGIS Pro, Rasterio, etc.), while still being backwards compatible with older software. My experience is that loading a standard 1-2GB Sentinel-1 raster into QGIS will take quite some time, whereas a COG will load almost immediatly, and will zoom, pan, and perform local histogram stretches MUCH faster.
 
 ## General Notes
-The docker iamge is currently re-launched every time a file is needed to be processed. Experimenting with keeping it open to process everything did not yield a significant time saving, despite the small amount of overhead of launching snappy over and over again.
+The docker image is currently re-launched every time a file is needed to be processed. Experimenting with keeping it open to process everything did not yield a significant time saving, despite the small amount of overhead of launching snappy over and over again.
 The largest reasons for this are:
 - The overhead for launching snappy is relatively small compared with the processing time
-- The processing time is has a significant proportion spent downloading supporting products from ESA (eg SRTM dems), even with a half gigabit connection.
-- These supporting data products do not seem to be re-used by snap within the same session.
+- The processing time has a significant proportion spent processing supporting products from ESA (eg SRTM dems)
+- These supporting data products do not seem to be re-used by snap within the same session, and need to be re-processed each time.
 
 For these reasons, the processing is currently done per file, by:
 1. Downloading a file
@@ -63,7 +75,7 @@ Future steps to increase the perfomance of the program include:
 - [X] Better checking for if a file has already been processed/etc
 - [X] Quickstart guide for launching it on a fresh 22.04 Nimbus instance
 - [ ] Pre-made Nimbus image with everything ready to go
-- [ ] Script to create & remove cronjob
+- [ ] Script to create & remove cronjob (currently just manually done)
 
 ## Using the pre-made image
 TODO
