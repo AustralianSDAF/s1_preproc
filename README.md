@@ -82,7 +82,14 @@ For more information on how to use EODAG, see the [API user guide overview](http
 ### Snappy processing
 The processing tool first uses snappy. As snappy requires python 3.6 (which is incompatible with the downloading tool), a docker image is built. See [snappy_processing/README.md](snappy_processing/README.md) for steps on how to set up the docker container. Docker should be included on the Nimbus ubuntnu 22.04 image.
 
-
+Currently the snappy processing will do the following:
+- Apply the orbit file
+- Do speckle filtering
+- Radiometric calibration
+- Thermal Noise removal
+- Terrain Correction
+- GRD Border noise removal
+- Subsetting (if requested, by default off)
 
 ### GDAL Processing
 Snappy by default doesnt apply adequate compresion to the geotiff, so once the snappy processing is completed, the raster output is then transformed into a [COG (Cloud Optimized GeoTiff)](https://www.cogeo.org/) with extra lossless compression applied. With lossless compression applied (`COMPRESS=LZW, PREDICTOR=2`), the COG is half the size of the snappy output, but about 15-25% larger than the equivalent standard geotiff with the same compression flags applied.
