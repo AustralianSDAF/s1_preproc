@@ -6,6 +6,7 @@ Author(s):
 
 ## Contents
 - [Overview](#overview)
+- [Setup](#setup)
 - [Downloading tool](#downloading-tool)
 - [Processing tool](#processing-tool)
 - [Notes](#notes)
@@ -25,6 +26,12 @@ python -m pip install git+https://github.com/CS-SI/eodag.git@develop
 Unfortunately, as mentioned above, it seems to need a version of requests which needs python>=3.7 (python 3.6 is now depreciated).
 
 For more information on how to use EODAG, see te [API user guide overview](https://eodag.readthedocs.io/en/stable/notebooks/api_user_guide/1_overview.html).
+
+## Setup
+There are currently two ways to set up the program:
+1. Using the pre-made Nimbus image to set up a VM. See [Using the Pre-Made Image](#using-the-pre-made-image)
+2. Manually settting up the Nimbus VM. See [Manually setting up a NimbusVM](#manually-setting-up-a-nimbusvm)
+
 
 ## Processing tool
 ### Snappy processing
@@ -54,9 +61,47 @@ Future steps to increase the perfomance of the program include:
 - [ ] Having a separate thread to download and process files, such that something is always being downloaded at any given time. This would perhaps involve launching a thread after each product is downloaded to process the product. There may be some issues with snappy needing to download additional materials at the same time, but there would likely be time savings due to almost always having something being downloaded (and the downloading, even at the speeds nimbus achieves, being the limiting factor).
 - [ ] An option to merge nearby data products across boundaries for better viewing
 - [X] Better checking for if a file has already been processed/etc
-- [ ] Quickstart guide for launching it on a fresh 22.04 Nimbus instance
+- [X] Quickstart guide for launching it on a fresh 22.04 Nimbus instance
 - [ ] Pre-made Nimbus image with everything ready to go
 - [ ] Script to create & remove cronjob
+
+## Using the pre-made image
+TODO
+
+## Manually setting up a NimbusVM
+If for whatever reason you need to manually set up a nimubs VM, the steps are as follows:
+1. Create an instance from the Ubuntu 22.04 image. When choosing a flavour, I recommend the 16 core version. Snappy and GDAL both benefit immensly from the extra cores and snappy in particular form the extra RAM. 40GB of storage is fine, we will make a data disk later. If you need help, see here: https://pawseysupercomputing.github.io/using-nimbus/06-launch-an-instance/index.html
+2. ssh in and run `sudo apt update && sudo apt upgrade -y`
+4. Once 2. finishes, reboot instance
+3.Create a data volume, and attach it to the serverformat and mount volume as per https://pawseysupercomputing.github.io/using-nimbus/07-attaching-storage/index.html 
+	1. I recommend mounting the file at /data. run `sudo mkdir /data`
+	2. Once image is made and attached, find which one it is with `sudo fdisk -l` likely /dev/sdc or /dev/sdb. NB: There is a openstack bug where the name you give it may not be its true name.
+	3. Once you know the device, if it is a fresh disk run (and be careful about typing this correctly) `sudo mkfs.ext4 /dev/sdb` if your device is /dev/sdb. If it is **NOT** a fresh disk, and already has a ext4 filesystem, and you do **NOT** want to purge everything on it, do not run this command
+	4. run `sudo mount /dev/sdb /data`
+	5. Set permissions properly for /data
+ `sudo chown sudo chown ubuntu:ubuntu /data -R`
+ 	6. sudo chmod uog=rwX /data -R
+
+5. install mambaforge, `wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh`, then `bash Mambaforge-Linux-x86_64.sh`, follow instructions, install in default directory `/home/ubuntu/mambaforge`, then `yes` to init mambaforge (or run `conda init`)
+6. activate mamba (exit & re-ssh, or try `source ~/.bashrc`)
+7. Download the repo, using either of:
+	- set up key pair and authenticate with github, then on nimbus run `git clone landgate`, 
+	- or just download the zipfile, and from your own computer `scp landgate-main.zip ubuntu@0.0.0.0:/home/ubuntu/landgate.zip`, insterting your nimbus ip in place of `0.0.0.0`. Then back on nimbus run `sudo apt install unzip -y && unzip landgate.zip`
+8. `cd landgate-main` or `cd landgate`
+9. install packages needed. `pip install -r requirements.txt` and then `mamba install gdal`
+10. build docker image, see instructions in `snappy_processing/README.md`, ie :
+	1. `cd snappy_processing`
+	2. Run the following build command. This can take a long time the first time it is run (about 10 minutes)
+```
+docker build -t landgate \
+  --build-arg USER_ID=$(id -u) \
+  --build-arg GROUP_ID=$(id -g) .
+```
+	
+11. `cd ..` to be back in the correct director (main code directory)
+12. Edit the header of `main_config.py` as you need to. In particular, change your search parameters, and your data save location
+13. Run `mkdir /data/S1_data`
+14. Run `process_and_download.py` and bob's your uncle.
 
 ## References
 
