@@ -39,9 +39,9 @@ SHELL=/bin/bash
 BASH_ENV=~/.bashrc_conda
 */30 * * * * run-one conda run --no-capture-output -n base python3 /home/ubuntu/code/landgate/process_and_download.py
 ```
-This will set the program once every 30 minutes, using the environment `base`, but only if the same command isnt already running (ie if it's processing and taking some time, it wont relaunch itself).   
+This will set the program once every 2 hours, using the conda/mamba environment `base`, but only if the same command isnt already running (ie if it's processing and taking some time, it wont relaunch itself).   
 
-If you want to change the time it takes to run, change `*/30 * * * *` at the start of the third line to the equivalent cron schedule (you can see what you want command you may want for what cycle here https://crontab.guru/)
+If you want to change the time it takes to run, change `* */2 * * *` at the start of the third line to the equivalent cron schedule (you can see what you want command you may want for what cycle here https://crontab.guru/)
 
 
 
