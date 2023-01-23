@@ -1,5 +1,5 @@
 # Landgate-ASDAF project
-### Sentinel-1 image pre-processing pipeline
+### Sentinel-1 image pre-processing with snappy
 Author(s):
 - Foad Farivar (foad.farivar@curtin.edu.au)
 - Leigh Tyers (leigh.tyers@curtin.edu.au)
