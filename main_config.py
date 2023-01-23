@@ -43,7 +43,7 @@ final_data_path = "./data/data_processed/"
 # Path to archive the processed raw data (relative to entrypoint paths)
 archive_data_path = "./data/data_archived/"
 
-download_from_thredds = False
+download_from_thredds = True
 
 
 ### Below are the pre-processing config options          ####
