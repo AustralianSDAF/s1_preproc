@@ -70,9 +70,9 @@ python3 process_and_download.py
 
 # Specifics
 ## Downloading tool
-The downloading tool used is [eodag](https://eodag.readthedocs.io/en/stable/). EODAG allows easy authentication, searching, and downloading of a variety of data products from multiple providers. As of writing, [SARA (Sentinel Australasia Regional Access)](https://copernicus.nci.org.au/sara.client/) is only supported in the latest development branch, and is not yet a release. To install it, simply run:
+The downloading tool used is [eodag](https://eodag.readthedocs.io/en/stable/). EODAG allows easy authentication, searching, and downloading of a variety of data products from multiple providers. [SARA (Sentinel Australasia Regional Access)](https://copernicus.nci.org.au/sara.client/) now supported in the official conda-forge and py-pi releases (ver >=2.8.0).
 ```
-python -m pip install git+https://github.com/CS-SI/eodag.git@develop
+python -m pip install eodag
 ```
 Unfortunately, as mentioned above, it seems to need a version of requests which needs python>=3.7 (python 3.6 is now depreciated).
 
