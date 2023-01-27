@@ -6,14 +6,17 @@
 # Directory to save files to
 data_directory = '/data/S1_data'
 
+# minlon, minlat, maxlon, maxlat to search between. Other code should fix issues with giving minlat as maxlat etc.
 bounds = [116.29493,-20.55255, 117.77237,-21.55667]
 
+# Period to search between
 start_date = "2021-01-20"
 end_date = "2021-02-20"
 
 # You shouldnt need to change the search options below.
 geo = {"lonmin": bounds[0], "latmin": bounds[1], "lonmax": bounds[2], "latmax": bounds[3]}
 
+# Full search criteria, must be a dictionary
 search_criteria = {
     "productType": "S1_SAR_GRD",
     "start": start_date,
