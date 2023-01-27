@@ -11,8 +11,14 @@ import logging
 import click
 import os
 import sys
+from osgeo import ogr
+from osgeo import osr
+import os
+from os.path import join, basename, isfile
+import re
 
 from main_config import log_fname
+
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
@@ -26,11 +32,23 @@ log = logging.getLogger(__name__)
 
 
 def write_shapefile(polygon, fpath = "data/search_polygon.shp", crs_num=4326):
-    """ writes an ESRI shapefile from a shapely polygon using osgeo """
-    from osgeo import ogr
-    from osgeo import osr
-    import os
+    """
+    Writes an ESRI shapefile from a shapely polygon using osgeo.
 
+    Parameters
+    ----------
+    polygon: shapely.geometry.Polygon
+        A shapely polygon to be written to shapefile.
+    fpath: str, optional
+        The file path to save the shapefile to.
+        Default is "data/search_polygon.shp".
+    crs_num: int, optional
+        The Coordinate Reference System (CRS) number, default is 4326
+
+    Returns
+    -------
+    None
+    """
     crs_num = int(crs_num)
 
     # Create a polygon from a ring (which we can assign points to)
@@ -71,14 +89,32 @@ def write_shapefile(polygon, fpath = "data/search_polygon.shp", crs_num=4326):
 
     feature = None
 
-    # Save and close DataSource
+    # Save and close DataSource. This HAS to be done to avoid memory leaks
     ds = None
+    return
 
 
 def check_file_processed(fname, final_data_path="./data/data_processed/", zip_file_given=False):
-    """ Checks if a file has already been processed """
-    from os.path import join, basename, isfile
-    import re
+    """
+    Check if a file has already been processed.
+
+    Parameters
+    ----------
+    fname : str
+        The name of the file to check
+    final_data_path: str, optional
+        The path to the directory where processed files are stored.
+        Default is "./data/data_processed/".
+    zip_file_given: bool, optional
+        Whether the input file is a zip file.
+        Default is False.
+
+    Returns
+    -------
+    bool
+        True if the file has already been processed, else False.
+
+    """
     fname = basename(fname)
     if(zip_file_given):
         fname = re.sub('(.zip)$', '_processed.tif', fname)
@@ -88,12 +124,29 @@ def check_file_processed(fname, final_data_path="./data/data_processed/", zip_fi
     og_file_exists =  isfile(join(final_data_path, fname))
     if(meta_file_exists and og_file_exists):
         return True
-    else:
-        return False
+    return False
 
 
 def create_proc_metadata(fname, final_data_path="./data/data_processed/", zip_file_given=False):
-    """ Creates metadata that the file has been processed for future use in '.processed'. """
+    """
+    Creates metadata that the file has been processed for future use in '.processed'.
+
+    Parameters
+    ----------
+    fname : str
+        The name of the file to create metadata for
+    final_data_path: str, optional
+        The path to the directory where processed files are stored.
+        Default is "./data/data_processed/".
+    zip_file_given: bool, optional
+        Whether the input file is a zip file.
+        Default is False.
+
+    Returns
+    -------
+    None
+
+    """
     from os.path import join, basename, isfile
     from pathlib import Path
     import re
@@ -108,9 +161,24 @@ def create_proc_metadata(fname, final_data_path="./data/data_processed/", zip_fi
 def run_docker_container(filename=None, file_list=None, data_directory='data', config_override=False, **kwargs):
     """
     Runs the docker container with appropriate cmdline arguments
-    Allows for data_directory to be passed
-    config_override will overwrite the config file if it exists
-    It will log the stdout of the docker container
+
+    Parameters
+    ----------
+    filename : str, optional
+        The name of the file to be processed, either filename or file_list is required
+    file_list : list, optional
+        The list of files to be processed, either filename or file_list is required
+    data_directory : str, optional
+        The directory where the data is located, default is "data"
+    config_override : bool, optional
+        A flag to indicate if the config file should be overridden, default is False
+    **kwargs:
+        Additional command line arguments passed to the container
+
+    Returns
+    -------
+    None
+
     """
     from subprocess import Popen, PIPE, STDOUT
     import logging
@@ -170,7 +238,22 @@ def run_docker_container(filename=None, file_list=None, data_directory='data', c
 
 
 def reformat_geotif(input_fname, output_fname=None):
-    """ Reformats a geotiff to be a COG with default options """
+    """
+    Reformats a geotiff to be a COG with lossless options.
+
+    Parameters
+    ----------
+    input_fname : str
+        The path to the input geotiff file.
+    output_fname : str, optional
+        The path to the output COG file, by default None.
+        If None, will append '_cog.tif' to the input file name.
+
+    Returns
+    -------
+    str
+        The path to the output COG file.
+    """
     from osgeo import gdal
     import re
     if output_fname is None:
@@ -190,6 +273,24 @@ def reformat_geotif(input_fname, output_fname=None):
 
 
 def download_and_process_product(product, data_directory, del_intermediate=True, download_from_thredds=False):
+    """
+    Downloads and processes a Sentinel-1 product from an EODAG product
+
+    Parameters
+    ----------
+    product : object
+        A queried Sentinel-1 product object from EODAG.
+    data_directory : str
+        The directory where the product should be downloaded and processed.
+    del_intermediate : bool
+        Whether to delete intermediate files after processing. Default is True.
+    download_from_thredds : bool
+        Whether to download the product from THREDDS instead of from EODAG. Default is False.
+
+    Returns
+    -------
+    None
+    """
     import re
     from os.path import join, basename
     from download_utils import download_product_thredds
@@ -246,7 +347,29 @@ def download_and_process_product(product, data_directory, del_intermediate=True,
     return
 
 
-def run_all(download_from_thredds, data_directory, bounds, search_criteria, del_intermediate):
+def run_all(download_from_thredds, data_directory, search_criteria, del_intermediate):
+    """
+    Function to be called from main.
+    It retrieves products from EODAG with given search criteria and bounds,
+    downloads and processes the products using eodag API and other helper functions.
+
+    Parameters
+    ----------
+    download_from_thredds (bool)
+        flag to download the products from thredds or not.
+    data_directory (str)
+        path to the directory where the downloaded products will be saved
+    bounds (Tuple)
+        tuple of (min_lon,min_lat,max_lon,max_lat) for spatial search
+    search_criteria (Dict)
+        dictionary of key-value pairs for filtering the search results
+    del_intermediate (bool)
+        flag to delete intermediate files (eg the raw output of snappy when computed the cog)
+
+    Returns:
+    ----------
+    None
+    """
     import os
     import logging
     from eodag import EODataAccessGateway
@@ -314,7 +437,6 @@ def run_all(download_from_thredds, data_directory, bounds, search_criteria, del_
 def main():
     from main_config import download_from_thredds
     from main_config import data_directory
-    from main_config import bounds
     from main_config import search_criteria
     from main_config import del_intermediate
 
@@ -325,7 +447,6 @@ def main():
     run_all(
         download_from_thredds=download_from_thredds,
         data_directory=data_directory,
-        bounds=bounds,
         search_criteria=search_criteria,
         del_intermediate=del_intermediate
     )
