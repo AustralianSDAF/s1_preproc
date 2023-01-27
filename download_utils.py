@@ -38,8 +38,19 @@ log = logging.getLogger(__name__)
 
 def get_fpath(product, raw_data_path):
     """
-    Gets the raw product name from a product, mimics eodag fname
-    Used in download_url
+    Given an eodag product object, returns the filepath of the file to be downloaded, mimics the naming of the file from EODAG
+
+    Parameters
+    ----------
+    product : object
+        EODAG product object
+    raw_data_path : str
+        The filepath to the directory where the raw data is stored
+
+    Returns
+    -------
+    str
+        The filepath of the raw product
     """
     from eodag.utils import sanitize
     from os.path import join
@@ -62,10 +73,25 @@ def get_fpath(product, raw_data_path):
 
 
 def declare_downloaded(product, raw_data_path):
+    """
+    Declares a product as downloaded by creating a .done file in the raw data path directory.
+    The file name is the product's name + '.done', in the folder '.downloaded' relative to the original file
+    Will mimic EODAGs syntax, by using the hash of the original download link (which will be re-created)
+
+    Parameters
+    ----------
+    product : object
+        an EODAG product object
+    raw_data_path : str
+        The directory where the raw data is stored
+
+    Returns
+    -------
+    None
+    """
     import hashlib
     import os
     from os.path import join
-    """ Declares a product to be downloaded, mimicing EODAG"""
     download_records_dir = os.path.join(raw_data_path, ".downloaded")
     try:
         os.makedirs(download_records_dir)
@@ -88,7 +114,20 @@ def declare_downloaded(product, raw_data_path):
 
 
 def download_product_thredds(product, raw_data_path):
-    """ A custom downloader for when download_from_thredds=True. Will check if a file has already been downloaded"""
+    """
+    A custom downloader for when download_from_thredds=True. Will check if a file has already been downloaded
+
+    Parameters
+    ----------
+    product : dict
+        an EODAG product object
+    raw_data_path : str
+        The path to the directory where the downloaded product will be saved.
+
+    Returns
+    -------
+    None
+    """
     from eodag.utils import ProgressCallback
     import requests
     fs_path = get_fpath(product, raw_data_path)
@@ -114,15 +153,27 @@ def download_product_thredds(product, raw_data_path):
 
 
 def product_downloaded(product, raw_data_path):
-    """ Checks if a product has already been downloaded """
+    """
+    Check if a product has already been downloaded
+
+    Parameters
+    ----------
+    product : dict
+        The product to check if it has been downloaded
+    raw_data_path : str
+        The path where the raw data is stored
+
+    Returns
+    -------
+    bool
+        Whether or not the product has already been downloaded
+    """
     import hashlib
     import os
     from os.path import join
     eodag_url = product.remote_location
     url_hash = hashlib.md5(eodag_url.encode("utf-8")).hexdigest()
     return os.path.isfile(join(raw_data_path, '.downloaded', url_hash))
-
-
 
 
 
