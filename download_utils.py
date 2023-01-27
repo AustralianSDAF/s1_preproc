@@ -42,7 +42,7 @@ def get_fpath(product, raw_data_path):
 
     Parameters
     ----------
-    product : object
+    product : eodag.api.product.EOProduct
         EODAG product object
     raw_data_path : str
         The filepath to the directory where the raw data is stored
@@ -80,7 +80,7 @@ def declare_downloaded(product, raw_data_path):
 
     Parameters
     ----------
-    product : object
+    product : eodag.api.product.EOProduct
         an EODAG product object
     raw_data_path : str
         The directory where the raw data is stored
@@ -119,7 +119,7 @@ def download_product_thredds(product, raw_data_path):
 
     Parameters
     ----------
-    product : dict
+    product : eodag.api.product.EOProduct
         an EODAG product object
     raw_data_path : str
         The path to the directory where the downloaded product will be saved.
@@ -158,7 +158,7 @@ def product_downloaded(product, raw_data_path):
 
     Parameters
     ----------
-    product : dict
+    product : eodag.api.product.EOProduct
         The product to check if it has been downloaded
     raw_data_path : str
         The path where the raw data is stored

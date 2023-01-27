@@ -278,7 +278,7 @@ def download_and_process_product(product, data_directory, del_intermediate=True,
 
     Parameters
     ----------
-    product : object
+    product : eodag.api.product.EOProduct
         A queried Sentinel-1 product object from EODAG.
     data_directory : str
         The directory where the product should be downloaded and processed.
