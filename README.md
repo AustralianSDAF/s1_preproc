@@ -112,7 +112,6 @@ This was done to preserve modularity, and to more easily understand the progress
 
 ## Wishlist
 Future steps to increase the perfomance of the program include:
-- [ ] Having a separate thread to download and process files, such that something is always being downloaded at any given time. This would perhaps involve launching a thread after each product is downloaded to process the product. There may be some issues with snappy needing to download additional materials at the same time, but there would likely be time savings due to almost always having something being downloaded (and the downloading, even at the speeds nimbus achieves, being the limiting factor).
 - [ ] An option to merge nearby data products across boundaries for better viewing
 - [X] Better checking for if a file has already been processed/etc
 - [X] Quickstart guide for launching it on a fresh 22.04 Nimbus instance
