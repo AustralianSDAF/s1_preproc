@@ -29,7 +29,7 @@ and inserting the following lines:
 ```
 SHELL=/bin/bash
 BASH_ENV=~/.bashrc_conda
-*/30 * * * * run-one conda run --no-capture-output -n base python3 /home/ubuntu/code/landgate/process_and_download.py
+* */2 * * * run-one conda run --no-capture-output -n base python3 /home/ubuntu/code/landgate/process_and_download.py
 ```
 This will set the program once every 2 hours, using the conda/mamba environment `base`, but only if the same command isnt already running (ie if it's processing and taking some time, it wont relaunch itself).   
 
