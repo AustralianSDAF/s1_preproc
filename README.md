@@ -151,7 +151,7 @@ docker build -t landgate \
   --build-arg GROUP_ID=$(id -g) .
 ```
 	
-11. `cd ..` to be back in the correct director (main code directory)
+11. `cd ..` to be back in the correct directory (main code directory)
 12. Edit the header of `main_config.py` as you need to. In particular, change your search parameters, and your data save location
 13. Run `mkdir /data/S1_data`
 14. Run `process_and_download.py` and bob's your uncle.
