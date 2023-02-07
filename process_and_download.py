@@ -428,11 +428,7 @@ def run_all(download_from_thredds, data_directory, search_criteria, del_intermed
             log.exception("Exception is:")
             log.error("End of exception")
             log.error("="*60)
-            log.error("Now trying again...")
-            download_and_process_product(product,
-                                         data_directory=data_directory,
-                                         del_intermediate=del_intermediate,
-                                         download_from_thredds=download_from_thredds)
+            log.error("Continuing...")
 
 
 
