@@ -1,17 +1,18 @@
 #!/bin/env/python
 
 #=======================================================================
-# Non-docker stuff options you'd likely want to actually change
+# Non-docker stuff options you'd likely want to actually change.
+# Try to keep changes to this section alone unless you know what you're doing
 
 # Directory to save files to
-data_directory = '/data/S1_data'
+data_directory = '/scratch/S1_data'
 
 # minlon, minlat, maxlon, maxlat to search between. Other code should fix issues with giving minlat as maxlat etc.
 bounds = [116.29493,-20.55255, 117.77237,-21.55667]
 
 # Period to search between
-start_date = "2021-01-20"
-end_date = "2021-02-20"
+start_date = "2023-01-31"
+end_date = "2023-02-07"
 
 # You shouldnt need to change the search options below.
 geo = {"lonmin": bounds[0], "latmin": bounds[1], "lonmax": bounds[2], "latmax": bounds[3]}
@@ -26,7 +27,7 @@ search_criteria = {
 }
 
 # The std_out will be logged here
-log_fname = "/data/S1_data/debug.log"
+log_fname = "/scratch/S1_data/debug.log"
 
 # Delete intermediate files in the processing (ie raw output of snappy)
 del_intermediate = True
@@ -53,6 +54,10 @@ archive_data_path = "./data/data_archived/"
 ### Below are the pre-processing config options          ####
 ### Feel free to change them as you want to,             ####
 ### but the defaults should work well enough             ####
+###                                                      ####
+### It also contains some parameters similar             ####
+### to the above, which are local paths in the docker    ####
+### container and should **NOT** be changed              ####
 #=======================================================================
 # pre-processing steps
 #=======================================================================
