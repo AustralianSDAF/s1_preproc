@@ -19,6 +19,8 @@ import re
 
 from main_config import log_fname
 
+os.makedirs(os.path.dirname(log_fname), exist_ok=True)
+
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
@@ -158,7 +160,7 @@ def create_proc_metadata(fname, final_data_path="./data/data_processed/", zip_fi
     return
 
 
-def run_docker_container(filename=None, file_list=None, data_directory='data', config_override=False, **kwargs):
+def run_docker_container(filename=None, file_list=None, data_directory='data', config_override=True, **kwargs):
     """
     Runs the docker container with appropriate cmdline arguments
 
