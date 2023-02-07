@@ -331,6 +331,7 @@ def download_and_process_product(product, data_directory, del_intermediate=True,
     log.info(f"   Starting cog reformatting for product {product.properties['title']}")
     if(not os.path.isfile(fpath_proc)):
         log.error(f" File {fpath_proc} does not exist.")
+        return
 
     reformat_geotif(fpath_proc)
     create_proc_metadata(cog_fname, final_data_path, zip_file_given=False)
