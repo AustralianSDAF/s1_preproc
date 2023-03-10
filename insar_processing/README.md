@@ -12,6 +12,15 @@ ___
 Processing pipeline for DEM Generation and Displacement Mapping from Sentinel-1 Interferometric Wide Swath products with ESA Sentinal Application Platform (SNAP 8.0) and Python 3.9.
 
 ![INSAR Processing Pipeline](INSAR_Processing_Flowchart.png)
+
+For successing InSAR Processing, it is highly recommended to select an image pair with suitable properties.
+- Short Temporal Baseline: Time between the first and second image should be kept as short as possible (Between 6 or 12 days)
+- Suitable Perpendicular Baseline: Distance between the satellites’ positions at the time of image acquisition should be between 150 - 300m
+
+Cannot be images acquired:
+- Over vegetation or water areas
+- Under changing moisture conditions (Advisable to select images acquired during dry periods and where no rainfall has occurred)
+- Over moving objects
 ___
 ## Setup (Conda)
 *Assuming you have already setup your Nimbus VM*
