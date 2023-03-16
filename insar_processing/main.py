@@ -42,6 +42,8 @@ def main() -> None:
         None
     '''
 # Download Products
+    Path(work_dir).mkdir(exist_ok=True, parents=True)
+    
     run_all(
         download_from_thredds=download_from_thredds,
         data_directory=work_dir,
