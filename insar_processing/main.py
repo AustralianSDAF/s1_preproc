@@ -44,6 +44,7 @@ def main() -> None:
 # Download Products
     Path(work_dir).mkdir(exist_ok=True, parents=True)
     
+    print('=====DOWNLOADING=====\n')
     run_all(
         download_from_thredds=download_from_thredds,
         data_directory=work_dir,
@@ -51,8 +52,11 @@ def main() -> None:
         del_intermediate=del_intermediate,
     )
     # Perform Precheck
+    print('=====PRE-SCREENING=====\n')
     insar_precheck()
+    
     # Perform InSAR Processing
+    print('=====PROCESSING=====\n')
     if from_precheck is False:
         insar_processing()
     else:
