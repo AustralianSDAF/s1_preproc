@@ -32,6 +32,7 @@ from eodag.utils import sanitize, ProgressCallback
 sys.path.append('..')
 from config import log_fname
 
+Path(log_fname).parent.mkdir(exist_ok=True, parents=True)
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
     level=logging.INFO,
