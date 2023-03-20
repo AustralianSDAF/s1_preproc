@@ -23,7 +23,7 @@ Cannot be images acquired:
 - Over moving objects
 
 NOTE: 
-- The orbit track spacing and revisit rate is significantly decreased at near the equator.
+- The orbit track spacing and revisit rate is significantly decreased at latitudes near the equator.
 - Sentinel-1B has stopped data transmission from December 23, 2021 therefore you may be unable to obtain good interferometric products from this point forward as the phase difference cannot be exploited.
 ___
 ## Setup (Conda)
