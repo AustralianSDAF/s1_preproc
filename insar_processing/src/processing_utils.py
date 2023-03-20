@@ -276,6 +276,8 @@ def snaphu_export(
     statcostmode: str,
     initmethod: str = "MCF",
     numprocessors: int = 8,
+    rowoverlap: int = 200,
+    coloverlap: int = 200,
 ):
     """
     Calls the SNAPHU Export operator to conver the interferogram (as the wrapped phase)
@@ -295,8 +297,8 @@ def snaphu_export(
     parameters.put("statCostMode", statcostmode)
     parameters.put("initMethod", initmethod)
     parameters.put("numberOfProcessors", numprocessors)
-    parameters.put("rowOverlap", 200)
-    parameters.put("colOverlap", 200)
+    parameters.put("rowOverlap", rowoverlap)
+    parameters.put("colOverlap", coloverlap)
 
     output = GPF.createProduct("SnaphuExport", parameters, product)
     ProductIO.writeProduct(output, str(targetfolder), "Snaphu")

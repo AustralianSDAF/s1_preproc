@@ -183,6 +183,8 @@ def insar_processing(filename_1: Path = cfg.filename_1, filename_2: Path = cfg.f
                 statcostmode=statcostmethod[cfg.processing],
                 initmethod=cfg.init_method,
                 numprocessors=cfg.num_processors,
+                rowoverlap=cfg.row_overlap,
+                coloverlap=cfg.col_overlap
             )
 
             # =============================================================================

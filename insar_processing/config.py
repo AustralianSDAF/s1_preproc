@@ -54,12 +54,13 @@ filename_2 = "S1B_IW_SLC__1SDV_20200528T213952_20200528T214019_021787_0295B1_17C
 
 # Specify the type of InSAR Processing to complete
 # ELEVATION or DISPLACEMENT
-processing = "DISPLACEMENT"
+processing = "ELEVATION"
 
 # SNAPHU Parameters
 init_method = "MCF"
 num_processors = 8
-
+row_overlap = 200
+col_overlap = 200
 # Specify your output file format
 # Allowed formats to write: GeoTIFF-BigTIFF,HDF5,Snaphu,BEAM-DIMAP,
 # GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,
