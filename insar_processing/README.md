@@ -31,8 +31,8 @@ ___
   `conda activate snap8`
 3. Install Python packages    
   `pip install -r requirements.txt`
-4. Install libgfortra5 on your machine    
-  `sudo apt install libgfortra5`
+4. Install libgfortran5 on your machine    
+  `sudo apt install libgfortran5`
 5. Configure SNAP Python API (SNAPPY) to use 80% available system memory    
     - Navigate to the directory containing your conda environment (e.g. `~/mambaforge/envs/snap8`)
     - Modify `.../snap/.snap/snap-python/snappy/snappy.ini` and set `java_max_mem` to 28G
@@ -42,7 +42,7 @@ ___
 7. Unzip SNAPHU
   `tar -xvzf snaphu-v2.0.5.tar.gz`
 8. Make SNAPHU
-  `cd snaphu-v2.0.5.tar.gz/src | make`
+  `cd snaphu-v2.0.5/src ; make`
 9. Add SNAPHU to System PATH by adding the following line to your `.bashrc` profile.  
   `export PATH=$PATH:/home/ubuntu/snaphu-v2.0.5/bin`
 
