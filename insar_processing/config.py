@@ -61,6 +61,7 @@ init_method = "MCF"
 num_processors = 8
 row_overlap = 200
 col_overlap = 200
+
 # Specify your output file format
 # Allowed formats to write: GeoTIFF-BigTIFF,HDF5,Snaphu,BEAM-DIMAP,
 # GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,

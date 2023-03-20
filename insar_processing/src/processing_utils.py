@@ -311,6 +311,8 @@ def snaphu_export_gpt(
     statcostmode: str,
     initmethod: str = "MCF",
     numprocessors: int = 8,
+    rowoverlap: int = 200,
+    coloverlap: int = 200,
 ):
     """
     Converts the interferogram (as the wrapped phase) into a format
@@ -330,6 +332,8 @@ def snaphu_export_gpt(
             f"-PstatCostMode={statcostmode}",
             f"-PinitMethod={initmethod}",
             f"-PnumberOfProcessors={numprocessors}",
+            f"-rowOverlap={rowoverlap}",
+            f"-colOverlap={coloverlap}",
             f"-PtargetFolder={str(targetfolder)}",
         ],
         check=True,
