@@ -22,9 +22,12 @@ Cannot be images acquired:
 - Under changing moisture conditions (Advisable to select images acquired during dry periods and where no rainfall has occurred)
 - Over moving objects
 
+NOTE: 
+- The orbit track spacing and revisit rate is significantly decreased at near the equator.
+- Sentinel-1B has stopped data transmission from December 23, 2021 therefore you may be unable to obtain good interferometric products from this point forward as the phase difference cannot be exploited.
 ___
 ## Setup (Conda)
-*Assuming you have already setup your Nimbus VM*
+*Assuming you have already setup your Nimbus VM (Recommended Requirements: 16 Core CPU/ 64GB RAM)*
 1. Create a conda environment   
   `conda create -n snap8 -c terradue snap=8.0.0 snapista`
 2. Activate the environment   
@@ -33,10 +36,10 @@ ___
   `pip install -r requirements.txt`
 4. Install libgfortran5 on your machine    
   `sudo apt install libgfortran5`
-5. Configure SNAP Python API (SNAPPY) to use 80% available system memory    
+5. Configure SNAP Python API (SNAPPY) to use 80% available system memory 
     - Navigate to the directory containing your conda environment (e.g. `~/mambaforge/envs/snap8`)
-    - Modify `.../snap/.snap/snap-python/snappy/snappy.ini` and set `java_max_mem` to 28G
-    - Modify `.../snap/etc/snap.properties` and set `snap.jai.tileCacheSize` to 28672
+    - Modify `.../snap/.snap/snap-python/snappy/snappy.ini` and set `java_max_mem` to 54G
+    - Modify `.../snap/etc/snap.properties` and set `snap.jai.tileCacheSize` to 55296
 6. Download SNAPHU
   `wget https://web.stanford.edu/group/radar/softwareandlinks/sw/snaphu/snaphu-v2.0.5.tar.gz`
 7. Unzip SNAPHU
@@ -90,3 +93,4 @@ Displacement Products
 3. [Phase Unwrapping with SNAPHU](https://step.esa.int/main/snap-supported-plugins/snaphu/)
 4. [SNAP GPT](http://step.esa.int/docs/tutorials/SNAP_CommandLine_Tutorial.pdf)
 5. [S-1 TOPS SPLIT Analyzer (STSA)](https://github.com/pbrotoisworo/s1-tops-split-analyzer)
+6. [Sentinel-1 Revisit and Coverage](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-1-sar/revisit-and-coverage)
