@@ -5,7 +5,7 @@ Author:
 
 ## Contents
 - [Overview](#overview)
-- [Setup (Conda)](#setup-steps-conda)
+- [Setup (Conda)](#setup-conda)
 - [References](#references)
 ___
 ## Overview
@@ -74,7 +74,7 @@ Note: Modify the paths as necessary depending on your machine.
 3. Configure `config.py` as required
 4. Run main.py to download, pre-screen and process your products.  
   `python main.py`
-NOTE: You will require significant computing resources for this to run without encountering memory issues.
+  
 ___
 ## Output Product Information
 DEM Products
