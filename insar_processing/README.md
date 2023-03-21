@@ -29,7 +29,7 @@ ___
 ## Setup (Conda)
 *Assuming you have already setup your Nimbus VM (Recommended Requirements: 16 Core CPU/ 64GB RAM)*
 1. Create a conda environment   
-  `conda create -n snap8 -c terradue snap=8.0.0 snapista`
+  `conda create -n snap8 -c terradue snap=8.0.0 snapista gdal`
 2. Activate the environment   
   `conda activate snap8`
 3. Install Python packages    
