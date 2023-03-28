@@ -13,7 +13,7 @@ Processing pipeline for DEM Generation and Displacement Mapping from Sentinel-1 
 
 ![INSAR Processing Pipeline](INSAR_Processing_Flowchart.png)
 
-For successing InSAR Processing, it is highly recommended to select an image pair with suitable properties.
+For successful InSAR Processing, it is highly recommended to select an image pair with suitable properties.
 - Short Temporal Baseline: Time between the first and second image should be kept as short as possible (Between 6 or 12 days)
 - Suitable Perpendicular Baseline: Distance between the satellites’ positions at the time of image acquisition should be between 150 - 300m
 
@@ -29,24 +29,22 @@ ___
 ## Setup (Conda)
 *Assuming you have already setup your Nimbus VM (Recommended Requirements: 16 Core CPU/ 64GB RAM)*
 1. Create a conda environment   
-  `conda create -n snap8 -c terradue snap=8.0.0 snapista gdal`
+  `conda create -n snap8 -c terradue snap=8.0.0 snapista gdal libgfortran5`
 2. Activate the environment   
   `conda activate snap8`
 3. Install Python packages    
   `pip install -r requirements.txt`
-4. Install libgfortran5 on your machine    
-  `sudo apt install libgfortran5`
-5. Configure SNAP Python API (SNAPPY) to use 80% available system memory 
+4. Configure SNAP Python API (SNAPPY) to use 80% available system memory 
     - Navigate to the directory containing your conda environment (e.g. `~/mambaforge/envs/snap8`)
     - Modify `.../snap/.snap/snap-python/snappy/snappy.ini` and set `java_max_mem` to 54G
     - Modify `.../snap/etc/snap.properties` and set `snap.jai.tileCacheSize` to 55296
-6. Download SNAPHU
+5. Download SNAPHU
   `wget https://web.stanford.edu/group/radar/softwareandlinks/sw/snaphu/snaphu-v2.0.5.tar.gz`
-7. Unzip SNAPHU
+6. Unzip SNAPHU
   `tar -xvzf snaphu-v2.0.5.tar.gz`
-8. Make SNAPHU
+7. Make SNAPHU
   `cd snaphu-v2.0.5/src ; make`
-9. Add SNAPHU to System PATH by adding the following line to your `.bashrc` profile.  
+8. Add SNAPHU to System PATH by adding the following line to your `.bashrc` profile.  
   `export PATH=$PATH:/home/ubuntu/snaphu-v2.0.5/bin`
 
 Note: Modify the paths as necessary depending on your machine.
