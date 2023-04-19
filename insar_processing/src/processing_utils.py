@@ -228,6 +228,34 @@ def goldstein_phase_filtering(product: object) -> object:
     return GPF.createProduct("GoldsteinPhaseFiltering", parameters, product)
 
 
+def subset(product: object, aoi: list) -> object:
+    """
+    Subsets the TOPS Debursted/Goldstein Phase Filtered Sentinel-1 Product based on a
+    Area of Interest given as a WKT Polygon.
+    Arguments:
+        product (org.esa.snap.core.datamodel.Product): TOPS Debursted/Goldstein Filtered Sentinel-1 Product
+        aoi (list): Area of Interest specified as [minlon, minlat, maxlon, maxlat]
+    Returns:
+        product (org.esa.snap.core.datamodel.Product): Subset Sentinel-1 Product
+    """
+    aoi_polygon = Polygon(
+        [
+            (aoi[0], aoi[1]),
+            (aoi[2], aoi[1]),
+            (aoi[2], aoi[3]),
+            (aoi[0], aoi[3]),
+        ]
+    )
+
+    polygon_str = aoi_polygon.wkt
+
+    parameters = HashMap()
+    parameters.put("copyMetadata", True)
+    parameters.put("geoRegion", f"{polygon_str}")
+
+    return GPF.createProduct("Subset", parameters, product)
+
+
 def multilooking(product: object) -> object:
     """
     Applies the Multi-Looking Operator within SNAP for optimal unwrapping results.
@@ -473,6 +501,7 @@ def coherence_mask(product: object, threshold: float) -> object:
 
     return product
 
+
 def get_subswath_burst(filepath_1: Path, filepath_2: Path, aoi: list) -> dict:
     """
     Processes the XML files of two Sentinel-1 products and extracts the subswaths and bursts
@@ -486,17 +515,19 @@ def get_subswath_burst(filepath_1: Path, filepath_2: Path, aoi: list) -> dict:
     """
     # Specifying Area of Interest as a readable format
     aoi_polygon = Polygon(
-    [
-        (aoi[0], aoi[1]),
-        (aoi[2], aoi[1]),
-        (aoi[2], aoi[3]),
-        (aoi[0], aoi[3]),
-    ]
+        [
+            (aoi[0], aoi[1]),
+            (aoi[2], aoi[1]),
+            (aoi[2], aoi[3]),
+            (aoi[0], aoi[3]),
+        ]
     )
     aoi_gdf = gpd.GeoDataFrame(geometry=[aoi_polygon])
 
     # Instantiating S1 TOPS Split Analyser
-    s1 = stsa.TopsSplitAnalyzer(target_subswaths=["iw1", "iw2", "iw3"], polarization="vv")
+    s1 = stsa.TopsSplitAnalyzer(
+        target_subswaths=["iw1", "iw2", "iw3"], polarization="vv"
+    )
 
     # Subswath and Burst Selection for filepath_1
     s1.load_zip(zip_path=str(filepath_1))
@@ -544,10 +575,11 @@ def get_subswath_burst(filepath_1: Path, filepath_2: Path, aoi: list) -> dict:
                 )
     return subswaths_bursts_dict
 
+
 def garbage_collection() -> None:
-    '''
+    """
     Invokes the Garbage Collection of the JVM.
     https://forum.step.esa.int/t/how-to-free-java-memory-snappy/5738
-    '''
-    System = snappy.jpy.get_type('java.lang.System')
+    """
+    System = snappy.jpy.get_type("java.lang.System")
     System.gc()
