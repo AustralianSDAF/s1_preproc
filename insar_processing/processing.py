@@ -12,15 +12,18 @@ import sys
 import config as cfg
 import src.processing_utils as snap
 
-def insar_processing(filename_1: Path = cfg.filename_1, filename_2: Path = cfg.filename_2):
-    '''
+
+def insar_processing(
+    filename_1: Path = cfg.filename_1, filename_2: Path = cfg.filename_2
+):
+    """
     Function containing the Displacement and Elevation pipelines.
     Args:
         filename_1 (Path): Filename for first Sentinel-1 Product (Older)
         filename_2 (Path): Filename for second Sentinel-1 Product (Newer)
     Returns:
         None
-    '''
+    """
 
     # =============================================================================
     # Config Input Validation
@@ -37,8 +40,8 @@ def insar_processing(filename_1: Path = cfg.filename_1, filename_2: Path = cfg.f
     # =============================================================================
     # Specifying up Input Filepaths
     work_dir = Path(cfg.work_dir)
-    filepath_1 = Path(work_dir, 'data_raw', filename_1)
-    filepath_2 = Path(work_dir, 'data_raw', filename_2)
+    filepath_1 = Path(work_dir, "data_raw", filename_1)
+    filepath_2 = Path(work_dir, "data_raw", filename_2)
 
     # Setting up Intermediate Directories
     work_dir.mkdir(exist_ok=True, parents=True)
@@ -160,6 +163,11 @@ def insar_processing(filename_1: Path = cfg.filename_1, filename_2: Path = cfg.f
             print("\nApplying Goldstein Phase Filtering Operation")
             flt = snap.goldstein_phase_filtering(product=deb)
 
+            # Apply Subset
+            if cfg.do_subset is True:
+                print("\nApplying Subset Operation")
+                flt = snap.subset(product=flt, aoi=cfg.bounds)
+
             # Applying Multi-Looking
             print("\nApplying Multi-Looking Operation")
             ml = snap.multilooking(product=flt)
@@ -184,7 +192,7 @@ def insar_processing(filename_1: Path = cfg.filename_1, filename_2: Path = cfg.f
                 initmethod=cfg.init_method,
                 numprocessors=cfg.num_processors,
                 rowoverlap=cfg.row_overlap,
-                coloverlap=cfg.col_overlap
+                coloverlap=cfg.col_overlap,
             )
 
             # =============================================================================
@@ -233,9 +241,10 @@ def insar_processing(filename_1: Path = cfg.filename_1, filename_2: Path = cfg.f
                 subprocess.run(["rm", "-rf", str(temp_dir)], check=True)
             print("Processing Complete!")
         else:
-            print(f'{matching_files[0]} already exists - Skipping')
+            print(f"{matching_files[0]} already exists - Skipping")
     # Clears JVM Memory Cache after Processing Product Pair
     snap.garbage_collection()
+
 
 if __name__ == "__main__":
     # Required for batch processing...
