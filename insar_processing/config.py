@@ -52,8 +52,12 @@ filename_1 = "S1B_IW_SLC__1SDV_20200516T213951_20200516T214019_021612_029081_ACB
 
 filename_2 = "S1B_IW_SLC__1SDV_20200528T213952_20200528T214019_021787_0295B1_17C1.zip"
 
-# Specify whether to further subset Subswath to your AoI (Could affect Phase Unwrapping due to information loss)
-do_subset = True
+# Specify whether to generate validation RGB Image
+write_rgb = True
+
+# Specify whether to further subset Subswath to your Area of Interest 
+# NOTE: Could affect Phase Unwrapping results due to information loss
+subset = False
 
 # Specify the type of InSAR Processing to complete
 # ELEVATION or DISPLACEMENT

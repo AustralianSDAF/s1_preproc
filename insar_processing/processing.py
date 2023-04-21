@@ -139,13 +139,14 @@ def insar_processing(
                 esd = snap.enhanced_spectral_diversity(product=stack)
             else:
                 esd = stack
-
-            print("Writing RGB Image")
-            rgb_image_path = Path(
-                work_dir,
-                f"{filepath_1.stem[:25]}_{filepath_2.stem[33:41]}_{cfg.processing}_{subswath}_split_Orb_Stack{esd_str}.png",
-            )
-            snap.write_rgb_image(product=esd, filename=rgb_image_path)
+            
+            if cfg.write_rgb is True:
+                print("Writing RGB Image")
+                rgb_image_path = Path(
+                    work_dir,
+                    f"{filepath_1.stem[:25]}_{filepath_2.stem[33:41]}_{cfg.processing}_{subswath}_split_Orb_Stack{esd_str}.png",
+                )
+                snap.write_rgb_image(product=esd, filename=rgb_image_path)
 
             # Interferogram
             print("\nApplying Interferogram Operation")
@@ -164,7 +165,7 @@ def insar_processing(
             flt = snap.goldstein_phase_filtering(product=deb)
 
             # Apply Subset
-            if cfg.do_subset is True:
+            if cfg.subset is True:
                 print("\nApplying Subset Operation")
                 flt = snap.subset(product=flt, aoi=cfg.bounds)
 
