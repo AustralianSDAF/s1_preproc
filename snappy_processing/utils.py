@@ -9,7 +9,8 @@ import os
 import shutil
 from datetime import datetime
 from pathlib import Path
-import data.config as cfg
+from os.path import join, basename, isfile
+import re
 
 # from snappy import Product
 from snappy import ProductIO
@@ -19,10 +20,11 @@ from snappy import WKTReader
 from snappy import HashMap
 from snappy import GPF
 from shapely import wkt
+from shapely.geometry import Polygon
+import shapely
 import snappy
 
-import shapely
-
+import data.config as cfg
 
 logging.basicConfig(
     format="%(asctime)s %(name)s %(levelname)-8s %(message)s",
@@ -179,8 +181,6 @@ def apply_orbit_file(source, apply_orbit_file_param):
         log.info("File {old_product_path} not found!")
         pass
 
-    print(new_path)
-    print(list(Path(new_path).parent.iterdir()))
     parameters = HashMap()
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
@@ -288,8 +288,6 @@ def thermal_noise_removal(source, thermal_noise_removal_param):
 
 
 def subset_from_polygon(source, poly_inp=None):
-    from shapely.geometry import Polygon
-    import shapely
 
     if type(poly_inp) is str:  # should be a wkt string
         poly = wkt.loads(poly_inp)
@@ -328,8 +326,6 @@ def subset_from_polygon(source, poly_inp=None):
 
 
 def subset_from_shapefile(source, shapefile_path=None):
-    import shapely
-    from shapely.geometry import Polygon
 
     if shapefile_path is not None:
         path = os.path.abspath(shapefile_path)
@@ -367,8 +363,6 @@ def subset_from_shapefile(source, shapefile_path=None):
 
 def check_file_processed(fname, final_data_path="./data/data_processed/", zip_file_given=True):
     """Checks if a file has already been processed"""
-    from os.path import join, basename, isfile
-    import re
 
     fname = basename(fname)
     if zip_file_given:
@@ -385,8 +379,6 @@ def check_file_processed(fname, final_data_path="./data/data_processed/", zip_fi
 
 def create_proc_metadata(fname, final_data_path="./data/data_processed/", zip_file_given=False):
     """Creates metadata that the file has been processed for future use in '.processed'."""
-    from os.path import join, basename, isfile
-    from pathlib import Path
     import re
 
     fname = basename(fname)

@@ -8,16 +8,24 @@ Original Author: leigh.tyers@curtin.edu.au
 Creation Date: 2023-01-13
 """
 import logging
-import click
 import os
 import sys
-from osgeo import ogr
-from osgeo import osr
 import os
-from os.path import join, basename, isfile
 import subprocess
 import re
+from os.path import join, basename, isfile
 from pathlib import Path
+import getpass
+from subprocess import Popen, PIPE, STDOUT
+import shutil
+from download_utils import download_product_thredds
+
+from osgeo import ogr
+from osgeo import osr
+from eodag import EODataAccessGateway
+from eodag import setup_logging
+from eodag.utils.exceptions import AuthenticationError
+from osgeo import gdal
 
 from main_config import log_fname
 
@@ -150,9 +158,6 @@ def create_proc_metadata(fname, final_data_path="./data/data_processed/", zip_fi
     None
 
     """
-    from os.path import join, basename, isfile
-    from pathlib import Path
-    import re
 
     fname = basename(fname)
     if zip_file_given:
@@ -198,10 +203,6 @@ def run_docker_container(
     None
 
     """
-    from subprocess import Popen, PIPE, STDOUT
-    import logging
-    from os.path import join, isfile
-    import shutil
 
     log = logging.getLogger()
     log.setLevel(logging.DEBUG)
@@ -274,8 +275,6 @@ def reformat_geotif(input_fname, output_fname=None):
     str
         The path to the output COG file.
     """
-    from osgeo import gdal
-    import re
 
     if output_fname is None:
         output_fname = re.sub("(.tif)$", "_cog.tif", input_fname)
@@ -317,9 +316,6 @@ def download_and_process_product(
     -------
     None
     """
-    import re
-    from os.path import join, basename
-    from download_utils import download_product_thredds
 
     raw_data_path = os.path.join(data_directory, "data_raw")
     final_data_path = os.path.join(data_directory, "data_processed")
@@ -331,8 +327,6 @@ def download_and_process_product(
     # It does not need authentication. The top-level repo is here:
     # https://dapds00.nci.org.au/thredds/catalog.html
     if download_from_thredds:
-        from download_utils import download_product_thredds
-
         fname = download_product_thredds(product, raw_data_path)
     else:
         fname = product.download(extract=False)
@@ -400,12 +394,6 @@ def run_all(download_from_thredds, data_directory, search_criteria, del_intermed
     ----------
     None
     """
-    import os
-    import logging
-    from eodag import EODataAccessGateway
-    from eodag import setup_logging
-    from eodag.utils.exceptions import AuthenticationError
-    import getpass
 
     raw_data_path = os.path.join(data_directory, "data_raw")
     final_data_path = os.path.join(data_directory, "data_processed")

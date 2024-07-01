@@ -22,9 +22,16 @@
 
 import logging
 from pathlib import Path
-
 import sys
 import os
+from os.path import join
+import hashlib
+import errno
+import traceback as tb
+import requests
+
+from eodag.utils import sanitize
+from eodag.utils import ProgressCallback
 
 from main_config import log_fname
 
@@ -55,8 +62,6 @@ def get_fpath(product, raw_data_path):
     str
         The filepath of the raw product
     """
-    from eodag.utils import sanitize
-    from os.path import join
 
     # Create fname
     outputs_extension = ".zip"
@@ -93,18 +98,13 @@ def declare_downloaded(product, raw_data_path):
     -------
     None
     """
-    import hashlib
-    import os
-    from os.path import join
 
     download_records_dir = os.path.join(raw_data_path, ".downloaded")
     try:
         os.makedirs(download_records_dir)
     except OSError as exc:
-        import errno
 
         if exc.errno != errno.EEXIST:  # Skip error if dir exists
-            import traceback as tb
 
             log.warning(
                 f"Unable to create records directory. Got:\n{tb.format_exc()}",
@@ -116,7 +116,9 @@ def declare_downloaded(product, raw_data_path):
         with open(record_filename, "w") as f:
             f.writelines(eodag_url)
     except OSError as e:
-        log.exception(f"Unable to create file indicating download for {record_fname}. exception:")
+        log.exception(
+            f"Unable to create file indicating download for {record_filename}. exception:"
+        )
     return True
 
 
@@ -135,8 +137,6 @@ def download_product_thredds(product, raw_data_path):
     -------
     None
     """
-    from eodag.utils import ProgressCallback
-    import requests
 
     fs_path = get_fpath(product, raw_data_path)
     if product_downloaded(product, raw_data_path):
@@ -176,9 +176,6 @@ def product_downloaded(product, raw_data_path):
     bool
         Whether or not the product has already been downloaded
     """
-    import hashlib
-    import os
-    from os.path import join
 
     eodag_url = product.remote_location
     url_hash = hashlib.md5(eodag_url.encode("utf-8")).hexdigest()
