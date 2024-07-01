@@ -151,14 +151,15 @@ def get_new_orbit_data_paths(product_name: str) -> str:
     filenames = [Path(file).name for file in get_old_orbit_data_paths(product_name=product_name)]
     product_name_components = product_name.split("_")
     new_product_path = Path("~/.snap/auxdata/Orbits/Sentinel-1").expanduser()
-    orbit_type = Path("POEORB")
-    sat = product_name_components[0]
-    year_str = product_name_components[4][:4]
-    month_str = product_name_components[4][4:6]
-    data_paths = [
-        (new_product_path / orbit_type / sat / year_str / month_str / filename).as_posix()
-        for filename in filenames
-    ]
+    data_paths = []
+    for orbit_type in ["POEORB", "RESORB"]:
+        sat = product_name_components[0]
+        year_str = product_name_components[4][:4]
+        month_str = product_name_components[4][4:6]
+        data_paths += [
+            (new_product_path / orbit_type / sat / year_str / month_str / filename).as_posix()
+            for filename in filenames
+        ]
     return data_paths
 
 
