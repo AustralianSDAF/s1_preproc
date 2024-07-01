@@ -3,13 +3,12 @@
 
 # import imp
 import logging
-import shapefile
-import pygeoif
 import os
 import shutil
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from os.path import join, basename, isfile
+import requests
 import re
 
 # from snappy import Product
@@ -23,6 +22,8 @@ from shapely import wkt
 from shapely.geometry import Polygon
 import shapely
 import snappy
+import shapefile
+import pygeoif
 
 import data.config as cfg
 
@@ -144,6 +145,68 @@ def get_old_orbit_data_paths(product_name: str, aux_path: str = cfg.aux_location
     if len(matching_files) == 0:
         raise FileNotFoundError("No orbitfiles found!")
     return matching_files
+
+
+def query_orbit(product_name: str):
+    """Queries an orbit for parameters from product_name"""
+    product_name_components = product_name.split("_")
+    sat = product_name_components[0]  # TODO: to be used for filtering S1A/S1C
+
+    date_fmt_in = "%Y%m%dT%H%M%S"
+    date_fmt_Z = "%Y-%m-%dT%H:%M:%SZ"
+    date_fmt_Z2 = "%Y-%m-%dT%H:%M:%S.%f"
+    satfile_duration = timedelta(
+        days=1, hours=3
+    )  # 1 day 2 hours, + an hour buffer to buffer search
+    startDate = datetime.strptime(product_name_components[4], date_fmt_in) - satfile_duration
+    completionDate = datetime.strptime(product_name_components[5], date_fmt_in) + satfile_duration
+    # Hardcoding the API string for now. Really
+    api_url = r"https://catalogue.dataspace.copernicus.eu/resto/api/collections/search.json?"
+
+    orbit_urls = []
+    orbit_types = ["POEORB", "RESORB"]
+    for orbit_type in orbit_types:
+        query_str = "&".join(
+            [
+                f"platform=SENTINEL-1",
+                f"productType=AUX_{orbit_type}",
+                f"startDate={startDate.strftime(date_fmt_Z)}",
+                f"completionDate={completionDate.strftime(date_fmt_Z)}",
+            ]
+        )
+        query_url = api_url + query_str
+        r = requests.get(query_url)
+        # not going to bother iterating through pages, we should only get 1-2 results, with 20 max per page
+        # Currently the 'exactCount' and 'totalResults' responses seems broken, stuck at 0/None, making this more difficult too
+        r_data = r.json()
+        # Parse data to get info needed for the url:
+        # https://step.esa.int/auxdata/orbits/Sentinel-1/RESORB/S1A/2024/07/
+        # S1A_OPER_AUX_RESORB_OPOD_20240701T035859_V20240701T000248_20240701T032018.EOF.zip
+        # productIdentifier example:
+        # /eodata/Sentinel-1/AUX/AUX_POEORB/2023/01/30/S1A_OPER_AUX_POEORB_OPOD_20230220T080804_V20230130T225942_20230201T005942.EOF'
+        for orbit_features in r_data["features"]:
+            orbit_data = orbit_features["properties"]
+            url_info = {
+                "fname": orbit_data["productIdentifier"].split("/")[-1] + ".zip",
+                "sat": orbit_data["title"][:3],  # e.g. S1A
+                "orbit": orbit_data["productType"].split("_")[-1],
+                "startDate": datetime.strptime(orbit_data["startDate"][:-1], date_fmt_Z2),
+            }
+            # Now form the url
+            base_url = "https://step.esa.int/auxdata/orbits/Sentinel-1"
+            orbit_url_suffix = "/".join(
+                [
+                    url_info["orbit"],
+                    url_info["sat"],
+                    f'{url_info["startDate"].year}',
+                    f'{url_info["startDate"].month:02d}',
+                    url_info["fname"],
+                ]
+            )
+            orbit_url = base_url + "/" + orbit_url_suffix
+            orbit_urls.append(orbit_url)
+
+    return orbit_urls
 
 
 def get_new_orbit_data_paths(product_name: str) -> str:
