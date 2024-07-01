@@ -3,7 +3,7 @@
 Description: Script for pre-processing S1 imagery.
              Due to compatibility issues between the download
              library and the processing library (snappy), we
-             need to
+             seperate the snappy processing into a docker container.
 Original Author: leigh.tyers@curtin.edu.au
 Creation Date: 2023-01-13
 """

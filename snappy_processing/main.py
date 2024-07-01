@@ -18,6 +18,7 @@ import gc
 import logging
 from snappy import ProductIO
 import utils
+from pathlib import Path
 
 import data.config as cfg
 
@@ -178,8 +179,8 @@ def process_file(filename=None, filelist=None, shapefile_path=None):
         # writing final product
         processed_product_name = product_name + "_" + "processed"
 
-        output_path = join(cfg.final_data_path, processed_product_name)
-        output_data_dir = join(os.getcwd(), output_path)
+        output_path = Path(cfg.final_data_path) / processed_product_name
+        output_data_dir = output_path.expanduser().resolve().as_posix()
 
         ProductIO.writeProduct(input_prod, output_data_dir, cfg.write_file_format)
 
