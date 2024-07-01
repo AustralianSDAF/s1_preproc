@@ -15,25 +15,26 @@ from osgeo import ogr
 from osgeo import osr
 import os
 from os.path import join, basename, isfile
+import subprocess
 import re
+from pathlib import Path
 
 from main_config import log_fname
+
+log_fname = Path(log_fname).expanduser().resolve().as_posix()
 
 os.makedirs(os.path.dirname(log_fname), exist_ok=True)
 
 logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
+    format="%(asctime)s %(levelname)-8s %(message)s",
     level=logging.INFO,
-    handlers=[
-        logging.FileHandler(log_fname),
-        logging.StreamHandler(sys.stdout)
-    ],
-    datefmt='%Y-%m-%d %H:%M:%S')
+    handlers=[logging.FileHandler(log_fname), logging.StreamHandler(sys.stdout)],
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 log = logging.getLogger(__name__)
 
 
-
-def write_shapefile(polygon, fpath = "data/search_polygon.shp", crs_num=4326):
+def write_shapefile(polygon, fpath="data/search_polygon.shp", crs_num=4326):
     """
     Writes an ESRI shapefile from a shapely polygon using osgeo.
 
@@ -72,7 +73,7 @@ def write_shapefile(polygon, fpath = "data/search_polygon.shp", crs_num=4326):
     ds = driver.CreateDataSource(fpath)
 
     # create the spatial reference system, WGS84
-    srs =  osr.SpatialReference()
+    srs = osr.SpatialReference()
     srs.ImportFromEPSG(crs_num)
 
     # create one layer self
@@ -118,13 +119,13 @@ def check_file_processed(fname, final_data_path="./data/data_processed/", zip_fi
 
     """
     fname = basename(fname)
-    if(zip_file_given):
-        fname = re.sub('(.zip)$', '_processed.tif', fname)
-    meta_dir = join(final_data_path, '.processed')
-    file_suffix = '.done'
+    if zip_file_given:
+        fname = re.sub("(.zip)$", "_processed.tif", fname)
+    meta_dir = join(final_data_path, ".processed")
+    file_suffix = ".done"
     meta_file_exists = isfile(join(meta_dir, fname + file_suffix))
-    og_file_exists =  isfile(join(final_data_path, fname))
-    if(meta_file_exists and og_file_exists):
+    og_file_exists = isfile(join(final_data_path, fname))
+    if meta_file_exists and og_file_exists:
         return True
     return False
 
@@ -152,15 +153,30 @@ def create_proc_metadata(fname, final_data_path="./data/data_processed/", zip_fi
     from os.path import join, basename, isfile
     from pathlib import Path
     import re
+
     fname = basename(fname)
-    if(zip_file_given):
-        fname = re.sub('(.zip)$', '_processed.tif', fname)
-    meta_dir = join(final_data_path, '.processed')
-    Path(join(meta_dir, fname+'.done')).touch()
+    if zip_file_given:
+        fname = re.sub("(.zip)$", "_processed.tif", fname)
+    meta_dir = join(final_data_path, ".processed")
+    Path(join(meta_dir, fname + ".done")).touch()
     return
 
 
-def run_docker_container(filename=None, file_list=None, data_directory='data', config_override=True, **kwargs):
+def docker_is_root():
+    """
+    Checks if the docker version on linux is a root install (not rootless) via a system call
+    """
+    try:
+        text_output = subprocess.check_output("docker version | grep rootlesskit", shell=True)
+    except:
+        text_output = None
+    is_root = False if (text_output) else True
+    return is_root
+
+
+def run_docker_container(
+    filename=None, file_list=None, data_directory="data", config_override=True, **kwargs
+):
     """
     Runs the docker container with appropriate cmdline arguments
 
@@ -186,32 +202,35 @@ def run_docker_container(filename=None, file_list=None, data_directory='data', c
     import logging
     from os.path import join, isfile
     import shutil
+
     log = logging.getLogger()
     log.setLevel(logging.DEBUG)
     log.info("Beggining logging...")
 
     def log_subprocess_output(pipe):
         # need to read output as bytes, so encode + concat then decode or a bug printing blank lines occurs. No idea why
-        for line in iter(pipe.readline, b''):
+        for line in iter(pipe.readline, b""):
             log.info(("Docker Output: ".encode() + line.rstrip()).decode())
 
     run_dir = os.path.abspath(data_directory)
-    cmd = f'docker run --rm -v {run_dir}/:/app/data landgate '
+    cmd = f"docker run --rm -v {run_dir}/:/app/data "
+    if docker_is_root():
+        cmd += " --user $(id -u):$(id -g) "
+    cmd += " landgate "
 
-    if(file_list):
-        cmd+=" --filelist 'data/files_to_process.txt'"
+    if file_list:
+        cmd += " --filelist 'data/files_to_process.txt'"
         # Santise files and output
         file_list = [os.path.basename(f) for f in file_list]
-        with open(join(data_directory, 'files_to_process.txt'), 'w') as f:
-            f.writelines('\n'.join(file_list))
-    elif(filename):
-        cmd+=f" --filename {filename}"
+        with open(join(data_directory, "files_to_process.txt"), "w") as f:
+            f.writelines("\n".join(file_list))
+    elif filename:
+        cmd += f" --filename {filename}"
     else:
         raise ValueError("File_list and filename are not valid.")
 
-
     for key, val in kwargs.items():
-        if key == 'shapefile':
+        if key == "shapefile":
             cmd += f"  --{key} '{join('data', os.path.basename(val))}'"
         else:
             cmd += f"  --{key} '{val}'"
@@ -219,24 +238,23 @@ def run_docker_container(filename=None, file_list=None, data_directory='data', c
     # The docker image needs a local copy of config in the appropriate directory.
     code_dir = os.path.dirname(os.path.realpath(__file__))
     try:
-        if((not isfile(join(data_directory, 'config.py'))) or config_override):
+        if (not isfile(join(data_directory, "config.py"))) or config_override:
             os.makedirs(data_directory, exist_ok=True)
-            shutil.copy(join(code_dir, 'main_config.py'), join(data_directory, 'config.py'))
+            shutil.copy(join(code_dir, "main_config.py"), join(data_directory, "config.py"))
     except shutil.SameFileError:
         pass
-    log.info(['-'*50])
-    log.info([f'    Processing file {filename}  '])
+    log.info(["-" * 50])
+    log.info([f"    Processing file {filename}  "])
     process = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
     with process.stdout:
         log_subprocess_output(process.stdout)
 
-    exitcode = process.wait() # 0 means success
-    if(not exitcode):
+    exitcode = process.wait()  # 0 means success
+    if not exitcode:
         log.info("    Exitcode 0, docker container success")
     else:
         log.error(f"    Exitcode nonzero for file: {filename}")
         log.error(f"    Exitcode was: {exitcode}")
-
 
 
 def reformat_geotif(input_fname, output_fname=None):
@@ -258,23 +276,29 @@ def reformat_geotif(input_fname, output_fname=None):
     """
     from osgeo import gdal
     import re
+
     if output_fname is None:
-        output_fname = re.sub('(.tif)$', '_cog.tif', input_fname)
-    options=gdal.TranslateOptions(
-        format = 'COG',
+        output_fname = re.sub("(.tif)$", "_cog.tif", input_fname)
+    options = gdal.TranslateOptions(
+        format="COG",
         noData=0,
-        options=["-co","COMPRESS=LZW",
-                 "-co","PREDICTOR=2",
-                 "-co", "NUM_THREADS=ALL_CPUS", ]
+        options=[
+            "-co",
+            "COMPRESS=LZW",
+            "-co",
+            "PREDICTOR=2",
+            "-co",
+            "NUM_THREADS=ALL_CPUS",
+        ],
     )
-    d = gdal.Translate(output_fname, input_fname,
-                   options=options)
+    d = gdal.Translate(output_fname, input_fname, options=options)
     d = None
     return output_fname
 
 
-
-def download_and_process_product(product, data_directory, del_intermediate=True, download_from_thredds=False):
+def download_and_process_product(
+    product, data_directory, del_intermediate=True, download_from_thredds=False
+):
     """
     Downloads and processes a Sentinel-1 product from an EODAG product
 
@@ -297,56 +321,59 @@ def download_and_process_product(product, data_directory, del_intermediate=True,
     from os.path import join, basename
     from download_utils import download_product_thredds
 
-    raw_data_path = os.path.join(data_directory, 'data_raw')
-    final_data_path = os.path.join(data_directory, 'data_processed')
+    raw_data_path = os.path.join(data_directory, "data_raw")
+    final_data_path = os.path.join(data_directory, "data_processed")
     # --------------------------------
     # Download file
-    log.info("-"*40)
+    log.info("-" * 40)
     log.info(f"Starting download for product {product.properties['title']}")
     # NCI's THREDDS dataserver is a publicly accessible data repository
     # It does not need authentication. The top-level repo is here:
     # https://dapds00.nci.org.au/thredds/catalog.html
-    if(download_from_thredds):
+    if download_from_thredds:
         from download_utils import download_product_thredds
+
         fname = download_product_thredds(product, raw_data_path)
     else:
         fname = product.download(extract=False)
 
-    fpath_proc = join(final_data_path, os.path.basename(fname))[:-4]+'_processed.tif'
-    cog_fname = re.sub('(.tif)$', '_cog.tif', fpath_proc)
+    fpath_proc = join(final_data_path, os.path.basename(fname))[:-4] + "_processed.tif"
+    cog_fname = re.sub("(.tif)$", "_cog.tif", fpath_proc)
 
-    if(check_file_processed(cog_fname, final_data_path, zip_file_given=False)):
-        log.info(f'Skipping processing {cog_fname} as it already exists.')
+    if check_file_processed(cog_fname, final_data_path, zip_file_given=False):
+        log.info(f"Skipping processing {cog_fname} as it already exists.")
         return
 
     # --------------------------------
     # Pre-process file
-    log.info("-"*40)
+    log.info("-" * 40)
     log.info(f"   Starting snappy processing for product {product.properties['title']}")
     run_docker_container(fname, data_directory=data_directory)
 
     # --------------------------------
     # reformat file
-    log.info("-"*40)
+    log.info("-" * 40)
     log.info(f"   Starting cog reformatting for product {product.properties['title']}")
-    if(not os.path.isfile(fpath_proc)):
+    if not os.path.isfile(fpath_proc):
         log.error(f" File {fpath_proc} does not exist.")
         return
 
     reformat_geotif(fpath_proc)
     create_proc_metadata(cog_fname, final_data_path, zip_file_given=False)
     # Clean up
-    if(del_intermediate):
+    if del_intermediate:
         try:
             os.remove(fpath_proc)
-            os.remove(join(data_directory, 'data_processed', '.processed', basename(fpath_proc)+'.done'))
+            os.remove(
+                join(data_directory, "data_processed", ".processed", basename(fpath_proc) + ".done")
+            )
         except ValueError:
-            log.error('@'*10)
-            log.error('Process likely failed at an earlier step, continuing')
-            log.error('@'*10)
+            log.error("@" * 10)
+            log.error("Process likely failed at an earlier step, continuing")
+            log.error("@" * 10)
 
     log.info(f"All done for {product.properties['title']}")
-    log.info("-"*20)
+    log.info("-" * 20)
     return
 
 
@@ -380,10 +407,8 @@ def run_all(download_from_thredds, data_directory, search_criteria, del_intermed
     from eodag.utils.exceptions import AuthenticationError
     import getpass
 
-
-
-    raw_data_path = os.path.join(data_directory, 'data_raw')
-    final_data_path = os.path.join(data_directory, 'data_processed')
+    raw_data_path = os.path.join(data_directory, "data_raw")
+    final_data_path = os.path.join(data_directory, "data_processed")
 
     # data_directory = '/home/leight/LANDGATE/data/S1_data'
     # raw_data_path = os.path.join(data_directory, 'data_raw')
@@ -392,10 +417,13 @@ def run_all(download_from_thredds, data_directory, search_criteria, del_intermed
 
     os.environ["EODAG__SARA__DOWNLOAD__OUTPUTS_PREFIX"] = os.path.abspath(raw_data_path)
 
-    if(not download_from_thredds):
-        os.environ["EODAG__SARA__AUTH__CREDENTIALS__USERNAME"] = input("Please enter your SARA username, then press ENTER (not SHIFT+ENTER)")
-        os.environ["EODAG__SARA__AUTH__CREDENTIALS__PASSWORD"] = getpass.getpass("Enter your password for SARA then press enter (not SHIFT+ENTER). The password will not be shown. Passwd:")
-
+    if not download_from_thredds:
+        os.environ["EODAG__SARA__AUTH__CREDENTIALS__USERNAME"] = input(
+            "Please enter your SARA username, then press ENTER (not SHIFT+ENTER)"
+        )
+        os.environ["EODAG__SARA__AUTH__CREDENTIALS__PASSWORD"] = getpass.getpass(
+            "Enter your password for SARA then press enter (not SHIFT+ENTER). The password will not be shown. Passwd:"
+        )
 
     setup_logging(verbose=2)
 
@@ -403,34 +431,39 @@ def run_all(download_from_thredds, data_directory, search_criteria, del_intermed
 
     dag.set_preferred_provider("sara")
 
-    search_products = dag.search_all(**search_criteria) # This should log the number of search products
+    search_products = dag.search_all(
+        **search_criteria
+    )  # This should log the number of search products
 
     for product in search_products:
-        log.info("="*60)
+        log.info("=" * 60)
         log.info(f"Now processing file {product.properties['title']}")
         try:
-            download_and_process_product(product,
-                                         data_directory=data_directory,
-                                         del_intermediate=del_intermediate,
-                                         download_from_thredds=download_from_thredds)
+            download_and_process_product(
+                product,
+                data_directory=data_directory,
+                del_intermediate=del_intermediate,
+                download_from_thredds=download_from_thredds,
+            )
         except AuthenticationError as e:
-            log.error("="*60)
-            log.error( "***AUTHENTICATION ERROR***")
+            log.error("=" * 60)
+            log.error("***AUTHENTICATION ERROR***")
             log.error("Authentication provided likely is not correct.")
             log.error("Processing will attempt to continue just")
             log.error("in case files are already present.")
             log.error("If this isnt wanted, CTRL + C out.")
             log.exception("The exception is: ")
             log.error("End of exception")
-            log.error("="*60)
+            log.error("=" * 60)
         except Exception:
-            log.error("="*60)
-            log.exception(f"Non exit exception caught. Program will try again in case it was a timeout.")
+            log.error("=" * 60)
+            log.exception(
+                f"Non exit exception caught. Program will try again in case it was a timeout."
+            )
             log.exception("Exception is:")
             log.error("End of exception")
-            log.error("="*60)
+            log.error("=" * 60)
             log.error("Continuing...")
-
 
 
 def main():
@@ -439,20 +472,19 @@ def main():
     from main_config import search_criteria
     from main_config import del_intermediate
 
-
-    log.info("Beggining log for new program run, inserting lines for visual clarity" + "\n"*6)
+    log.info("Beggining log for new program run, inserting lines for visual clarity" + "\n" * 6)
     log.info("New program run:")
-    log.info("="*60)
+    log.info("=" * 60)
+    data_directory = Path(data_directory).expanduser().as_posix()
+    log.info(f"Data directory is {data_directory}")
     run_all(
         download_from_thredds=download_from_thredds,
         data_directory=data_directory,
         search_criteria=search_criteria,
-        del_intermediate=del_intermediate
+        del_intermediate=del_intermediate,
     )
+
 
 if __name__ == "__main__":
     # Load config & setup
     main()
-
-
-

@@ -6,10 +6,7 @@ FROM ubuntu:18.04
 # But have not had any luck with getting said wheel to then work with installation.
 
 
-ARG USER_ID
-ARG GROUP_ID
-
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 USER root
 
 # Install dependencies and tools
@@ -32,7 +29,7 @@ RUN apt-get update && apt-get upgrade -y && \
 
 # install SNAPPY
 RUN apt-get install default-jdk maven -y
-ENV JAVA_HOME "/usr/lib/jvm/java-11-openjdk-amd64/"
+ENV JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64/"
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 COPY snap /src/snap
 RUN wget -O /src/snap/esa-snap_sentinel_unix_9_0_0.sh "https://download.esa.int/step/snap/9.0/installers/esa-snap_sentinel_unix_9_0_0.sh"
@@ -77,11 +74,5 @@ RUN export LANG=C.UTF-8
 #copy project
 COPY . .
 
-RUN echo $GROUP_ID
-RUN echo echo $USER_ID
-RUN addgroup ubuntu --gid $GROUP_ID
-RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID ubuntu
-
-USER ubuntu
 
 ENTRYPOINT [ "/usr/bin/python3", "main.py" ]

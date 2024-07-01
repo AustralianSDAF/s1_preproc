@@ -21,18 +21,21 @@
 #
 
 import logging
-from main_config import log_fname
+from pathlib import Path
+
 import sys
 import os
 
+from main_config import log_fname
+
+log_fname = Path(log_fname).expanduser().resolve().as_posix()
+
 logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
+    format="%(asctime)s %(levelname)-8s %(message)s",
     level=logging.INFO,
-    handlers=[
-        logging.FileHandler(log_fname),
-        logging.StreamHandler(sys.stdout)
-    ],
-    datefmt='%Y-%m-%d %H:%M:%S')
+    handlers=[logging.FileHandler(log_fname), logging.StreamHandler(sys.stdout)],
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 log = logging.getLogger(__name__)
 
 
@@ -54,8 +57,9 @@ def get_fpath(product, raw_data_path):
     """
     from eodag.utils import sanitize
     from os.path import join
+
     # Create fname
-    outputs_extension = '.zip'
+    outputs_extension = ".zip"
     sanitized_title = sanitize(product.properties["title"])
     if sanitized_title == product.properties["title"]:
         collision_avoidance_suffix = ""
@@ -92,13 +96,16 @@ def declare_downloaded(product, raw_data_path):
     import hashlib
     import os
     from os.path import join
+
     download_records_dir = os.path.join(raw_data_path, ".downloaded")
     try:
         os.makedirs(download_records_dir)
     except OSError as exc:
         import errno
+
         if exc.errno != errno.EEXIST:  # Skip error if dir exists
             import traceback as tb
+
             log.warning(
                 f"Unable to create records directory. Got:\n{tb.format_exc()}",
             )
@@ -106,7 +113,7 @@ def declare_downloaded(product, raw_data_path):
     url_hash = hashlib.md5(eodag_url.encode("utf-8")).hexdigest()
     record_filename = os.path.join(download_records_dir, url_hash)
     try:
-        with open(record_filename, 'w') as f:
+        with open(record_filename, "w") as f:
             f.writelines(eodag_url)
     except OSError as e:
         log.exception(f"Unable to create file indicating download for {record_fname}. exception:")
@@ -130,22 +137,23 @@ def download_product_thredds(product, raw_data_path):
     """
     from eodag.utils import ProgressCallback
     import requests
+
     fs_path = get_fpath(product, raw_data_path)
-    if(product_downloaded(product, raw_data_path)):
+    if product_downloaded(product, raw_data_path):
         log.info(f"Product already downloaded: {fs_path}")
         return fs_path
 
     thredds_base_url = "https://dapds00.nci.org.au/thredds/fileServer/fj7/Copernicus/"
-    threds_url = '/'.join(
-        [thredds_base_url, *product.properties['quicklook'].split('/')[4:]]
-    )[:-4] + '.zip'
+    threds_url = (
+        "/".join([thredds_base_url, *product.properties["quicklook"].split("/")[4:]])[:-4] + ".zip"
+    )
     progress_callback = ProgressCallback(mininterval=0.1)
     progress_callback.desc = str(product.properties.get("id", ""))
     stream = requests.get(threds_url, stream=True)
-    total =  int(stream.headers['content-length'])
+    total = int(stream.headers["content-length"])
     progress_callback.reset(total=total)
     with open(fs_path, "wb") as fhandle:
-        for chunk in stream.iter_content(chunk_size=64*1024):
+        for chunk in stream.iter_content(chunk_size=64 * 1024):
             size = fhandle.write(chunk)
             progress_callback.update(size)
     declare_downloaded(product, raw_data_path)
@@ -171,12 +179,11 @@ def product_downloaded(product, raw_data_path):
     import hashlib
     import os
     from os.path import join
+
     eodag_url = product.remote_location
     url_hash = hashlib.md5(eodag_url.encode("utf-8")).hexdigest()
-    return os.path.isfile(join(raw_data_path, '.downloaded', url_hash))
-
+    return os.path.isfile(join(raw_data_path, ".downloaded", url_hash))
 
 
 if __name__ == "__main__":
     pass
-
