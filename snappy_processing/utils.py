@@ -3,33 +3,50 @@
 
 # import imp
 import logging
-import shapefile
-import pygeoif
 import os
-import snappy
+import shutil
+from datetime import datetime, timedelta
+from pathlib import Path
+from os.path import join, basename, isfile
+import requests
+import re
+
 # from snappy import Product
 from snappy import ProductIO
+
 # from snappy import ProductUtils
 from snappy import WKTReader
 from snappy import HashMap
 from snappy import GPF
 from shapely import wkt
+from shapely.geometry import Polygon
+import shapely
+import snappy
+import shapefile
+import pygeoif
+
+import orbits
 
 
 logging.basicConfig(
-    format='%(asctime)s %(name)s %(levelname)-8s %(message)s',
+    format="%(asctime)s %(name)s %(levelname)-8s %(message)s",
     level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S')
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 
 def pre_checks(
-        filename, filelist,
-        raw_data_path,
-        shapefile_path, do_subset_from_shapefile, final_data_path,
-        archive_data_path, do_archive_data
-        ):
+    filename,
+    filelist,
+    raw_data_path,
+    shapefile_path,
+    do_subset_from_shapefile,
+    final_data_path,
+    archive_data_path,
+    do_archive_data,
+):
     """perform directory structure check
 
     :return: if return = 0 -> no file to processs | if return = -1 -> Error | else: Success
@@ -40,7 +57,7 @@ def pre_checks(
     cwd = os.getcwd()
     log.debug("Checking data directories")
 
-    if(filename and filelist):
+    if filename and filelist:
         log.error("Please only give one of filename or filelist")
         return -1
     if not (filename or filelist):
@@ -52,7 +69,9 @@ def pre_checks(
         return -1
 
     if (not os.path.exists(os.path.join(cwd, raw_data_path))) and (filename is not None):
-        log.error("Raw data directory {} does not exist. Terminating execution ...".format(raw_data_path))
+        log.error(
+            "Raw data directory {} does not exist. Terminating execution ...".format(raw_data_path)
+        )
         return -1
 
     if do_subset_from_shapefile:
@@ -76,7 +95,9 @@ def pre_checks(
 
     archive_dir = os.path.join(cwd, archive_data_path)
     if do_archive_data and not os.path.exists(archive_dir):
-        log.warning("archive_data is set to 'True' but there is no data_archived directory found. Creating the directory ...")
+        log.warning(
+            "archive_data is set to 'True' but there is no data_archived directory found. Creating the directory ..."
+        )
         os.mkdir(archive_dir)
 
     log.debug("Checking data directories completed successfully")
@@ -84,12 +105,16 @@ def pre_checks(
     return 1
 
 
-def apply_orbit_file(source, apply_orbit_file_param):
+def apply_orbit_file(source, apply_orbit_file_param, aux_data_path):
     """To properly orthorectify the image, the orbit file is applied using the Apply-Orbit-File GPF module.
 
     :param source: input
     :type source: SNAP product object
     """
+
+    # Snap9's api is broken so we need to download orbitfiles seperately. Look to see if one exists
+    # We dont need to pass this in later, we just need to move them to a specific (local) directory
+    orbits.get_orbit_files(product_name=source.getName(), aux_path=aux_data_path)
 
     parameters = HashMap()
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
@@ -98,7 +123,7 @@ def apply_orbit_file(source, apply_orbit_file_param):
         if value is not None:
             parameters.put(key, value)
 
-    output = GPF.createProduct('Apply-Orbit-File', parameters, source)
+    output = GPF.createProduct("Apply-Orbit-File", parameters, source)
     return output
 
 
@@ -137,12 +162,12 @@ def speckle_filtering(source, speckle_filtering_param):
         if value is not None:
             parameters.put(key, value)
 
-    output = GPF.createProduct('Speckle-Filter', parameters, source)
+    output = GPF.createProduct("Speckle-Filter", parameters, source)
     return output
 
 
 def terrain_correction(source, terrain_correction_param):
-    """ apply terrain correction to the product
+    """apply terrain correction to the product
 
     :param source: input
     :type source: SNAP product object
@@ -156,7 +181,7 @@ def terrain_correction(source, terrain_correction_param):
         if value is not None:
             parameters.put(key, value)
 
-    output = GPF.createProduct('Terrain-Correction', parameters, source)
+    output = GPF.createProduct("Terrain-Correction", parameters, source)
     return output
 
 
@@ -175,7 +200,7 @@ def grd_border_noise(source, grd_border_noise_param):
         if value is not None:
             parameters.put(key, value)
 
-    output = GPF.createProduct('Remove-GRD-Border-Noise', parameters, source)
+    output = GPF.createProduct("Remove-GRD-Border-Noise", parameters, source)
     return output
 
 
@@ -193,20 +218,19 @@ def thermal_noise_removal(source, thermal_noise_removal_param):
     for key, value in thermal_noise_removal_param.items():
         if value is not None:
             parameters.put(key, value)
-    output = GPF.createProduct('ThermalNoiseRemoval', parameters, source)
+    output = GPF.createProduct("ThermalNoiseRemoval", parameters, source)
     return output
 
 
 def subset_from_polygon(source, poly_inp=None):
-    from shapely.geometry import Polygon
-    import shapely
-    if type(poly_inp) is str:     # should be a wkt string
+
+    if type(poly_inp) is str:  # should be a wkt string
         poly = wkt.loads(poly_inp)
         wkt_s = poly_inp
     elif isinstance(poly_inp, Polygon):
         poly = poly_inp
         wkt_s = poly.wkt
-    elif poly_inp is not None:    # Try loading it directly with shapely
+    elif poly_inp is not None:  # Try loading it directly with shapely
         poly = Polygon(poly_inp)
         wkt_s = poly.wkt
     else:
@@ -216,8 +240,8 @@ def subset_from_polygon(source, poly_inp=None):
     # check if polygon inside the image
     data_boundary_java = snappy.ProductUtils.createGeoBoundary(source, 2000)
     image_poly = Polygon([(i.lon, i.lat) for i in list(data_boundary_java)])
-    if(poly is not None):
-        if(not image_poly.intersects(poly)):
+    if poly is not None:
+        if not image_poly.intersects(poly):
             log.error("Polygon does not intersect image. Raising an exception")
             log.error(f"    polygon given is {poly.wkt}")
             log.error(f"    Image polygon is {image_poly.wkt}")
@@ -229,18 +253,16 @@ def subset_from_polygon(source, poly_inp=None):
     parameters = HashMap()
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
-    parameters.put('copyMetadata', True)
-    parameters.put('geoRegion', geometry)
-    output = GPF.createProduct('Subset', parameters, source)
+    parameters.put("copyMetadata", True)
+    parameters.put("geoRegion", geometry)
+    output = GPF.createProduct("Subset", parameters, source)
 
     return output
 
 
 def subset_from_shapefile(source, shapefile_path=None):
-    import shapely
-    from shapely.geometry import Polygon
 
-    if(shapefile_path is not None):
+    if shapefile_path is not None:
         path = os.path.abspath(shapefile_path)
     else:
         path = shapefile_path
@@ -262,8 +284,8 @@ def subset_from_shapefile(source, shapefile_path=None):
 
     data_boundary_java = snappy.ProductUtils.createGeoBoundary(source, 2000)
     image_poly = Polygon([(i.lon, i.lat) for i in list(data_boundary_java)])
-    if(poly is not None):
-        if(not image_poly.intersects(poly)):
+    if poly is not None:
+        if not image_poly.intersects(poly):
             log.error("Shapefile polygon does not intersect image. Raising an exception")
             log.error(f"    Shapefile polygon is {poly.wkt}")
             log.error(f"    Image polygon is {image_poly.wkt}")
@@ -275,30 +297,28 @@ def subset_from_shapefile(source, shapefile_path=None):
 
 
 def check_file_processed(fname, final_data_path="./data/data_processed/", zip_file_given=True):
-    """ Checks if a file has already been processed """
-    from os.path import join, basename, isfile
-    import re
+    """Checks if a file has already been processed"""
+
     fname = basename(fname)
-    if(zip_file_given):
-        fname = re.sub('(.zip)$', '_processed.tif', fname)
-    meta_dir = join(final_data_path, '.processed')
-    file_suffix = '.done'
+    if zip_file_given:
+        fname = re.sub("(.zip)$", "_processed.tif", fname)
+    meta_dir = join(final_data_path, ".processed")
+    file_suffix = ".done"
     meta_file_exists = isfile(join(meta_dir, fname + file_suffix))
-    og_file_exists =  isfile(join(final_data_path, fname))
-    if(meta_file_exists and og_file_exists):
+    og_file_exists = isfile(join(final_data_path, fname))
+    if meta_file_exists and og_file_exists:
         return True
     else:
         return False
 
 
 def create_proc_metadata(fname, final_data_path="./data/data_processed/", zip_file_given=False):
-    """ Creates metadata that the file has been processed for future use in '.processed'. """
-    from os.path import join, basename, isfile
-    from pathlib import Path
+    """Creates metadata that the file has been processed for future use in '.processed'."""
     import re
+
     fname = basename(fname)
-    if(zip_file_given):
-        fname = re.sub('(.zip)$', '_processed.tif', fname)
-    meta_dir = join(final_data_path, '.processed')
-    Path(join(meta_dir, fname+'.done')).touch()
+    if zip_file_given:
+        fname = re.sub("(.zip)$", "_processed.tif", fname)
+    meta_dir = join(final_data_path, ".processed")
+    Path(join(meta_dir, fname + ".done")).touch()
     return

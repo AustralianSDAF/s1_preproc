@@ -2,3 +2,4 @@ pygeoif
 pyshp
 click
 shapely
+requests
