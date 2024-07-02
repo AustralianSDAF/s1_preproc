@@ -49,6 +49,9 @@ final_data_path = "./data/data_processed/"
 # Path to archive the processed raw data (relative to entrypoint paths)
 archive_data_path = "./data/data_archived/"
 
+# Path to auxillary data like orbitfiles
+aux_location = "./data/aux_data"
+
 
 ### Below are the pre-processing config options          ####
 ### Feel free to change them as you want to,             ####
@@ -130,8 +133,8 @@ polygon_param = "POLYGON ((125.54647 -17.94607, \
 
 
 do_subset_from_shapefile = False
-shapefile_path = "./data/data_raw/island_boundary2.shp"
-aux_location = "./data/aux_data"
+# local Path to shapefile if subset_from_shapefile is enabled
+shapefile_path = "./data/data_raw/example.shp"
 # =======================================================================
 
 write_file_format = "GeoTIFF"

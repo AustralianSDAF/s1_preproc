@@ -130,7 +130,10 @@ def process_file(filename=None, filelist=None, shapefile_path=None):
 
         # start pre-processing steps
         if cfg.do_apply_orbit_file:
-            applied_orbit_product = utils.apply_orbit_file(input_prod, cfg.apply_orbit_file_param)
+            aux_data_path = cfg.aux_location
+            applied_orbit_product = utils.apply_orbit_file(
+                input_prod, cfg.apply_orbit_file_param, aux_data_path=aux_data_path
+            )
             log.info("apply orbit completed")
             input_prod = applied_orbit_product
 
