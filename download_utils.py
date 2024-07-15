@@ -4,7 +4,7 @@
 #
 # ===========================================================
 #
-# This file is partly derived from the EODAG project
+# Some functions in this file are partly derived from the EODAG project
 #     https://www.github.com/CS-SI/EODAG
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

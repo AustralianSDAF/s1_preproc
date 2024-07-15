@@ -179,6 +179,38 @@ def docker_is_root():
     return is_root
 
 
+def form_docker_command():
+    """Forms the command to run docker
+
+    See Also
+    --------
+    run_docker_container : Uses this function
+    """
+    cmd = f"docker run --rm -v {run_dir}/:/app/data "
+    if docker_is_root():
+        cmd += " --user $(id -u):$(id -g) "
+    cmd += " landgate "
+
+    if file_list:
+        cmd += " --filelist 'data/files_to_process.txt'"
+        # Santise files and output
+        file_list = [os.path.basename(f) for f in file_list]
+        with open(join(data_directory, "files_to_process.txt"), "w") as f:
+            f.writelines("\n".join(file_list))
+    elif filename:
+        cmd += f" --filename {filename}"
+    else:
+        raise ValueError("File_list and filename are not valid.")
+
+    for key, val in kwargs.items():
+        if key == "shapefile":
+            cmd += f"  --{key} '{join('data', os.path.basename(val))}'"
+        else:
+            cmd += f"  --{key} '{val}'"
+
+    return cmd
+
+
 def run_docker_container(
     filename=None, file_list=None, data_directory="data", config_override=True, **kwargs
 ):
@@ -214,27 +246,7 @@ def run_docker_container(
             log.info(("Docker Output: ".encode() + line.rstrip()).decode())
 
     run_dir = os.path.abspath(data_directory)
-    cmd = f"docker run --rm -v {run_dir}/:/app/data "
-    if docker_is_root():
-        cmd += " --user $(id -u):$(id -g) "
-    cmd += " landgate "
 
-    if file_list:
-        cmd += " --filelist 'data/files_to_process.txt'"
-        # Santise files and output
-        file_list = [os.path.basename(f) for f in file_list]
-        with open(join(data_directory, "files_to_process.txt"), "w") as f:
-            f.writelines("\n".join(file_list))
-    elif filename:
-        cmd += f" --filename {filename}"
-    else:
-        raise ValueError("File_list and filename are not valid.")
-
-    for key, val in kwargs.items():
-        if key == "shapefile":
-            cmd += f"  --{key} '{join('data', os.path.basename(val))}'"
-        else:
-            cmd += f"  --{key} '{val}'"
     log.info(cmd)
     # The docker image needs a local copy of config in the appropriate directory.
     code_dir = os.path.dirname(os.path.realpath(__file__))
@@ -244,6 +256,8 @@ def run_docker_container(
             shutil.copy(join(code_dir, "main_config.py"), join(data_directory, "config.py"))
     except shutil.SameFileError:
         pass
+    # move shapefile into relevat
+
     log.info(["-" * 50])
     log.info([f"    Processing file {filename}  "])
     process = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
