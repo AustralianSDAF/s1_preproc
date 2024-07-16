@@ -18,7 +18,6 @@ from pathlib import Path
 import getpass
 from subprocess import Popen, PIPE, STDOUT
 import shutil
-from download_utils import download_product_thredds
 
 from osgeo import ogr
 from osgeo import osr
@@ -27,12 +26,11 @@ from eodag import setup_logging
 from eodag.utils.exceptions import AuthenticationError
 from osgeo import gdal
 
-from main_config import log_fname
+from main_config import log_fname, data_directory
 
+log_fname = os.path.join(data_directory, log_fname)
 log_fname = Path(log_fname).expanduser().resolve().as_posix()
-
 os.makedirs(os.path.dirname(log_fname), exist_ok=True)
-
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
     level=logging.INFO,
@@ -40,6 +38,8 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger(__name__)
+
+from download_utils import download_product_thredds
 
 
 def write_shapefile(polygon, fpath="data/search_polygon.shp", crs_num=4326):
