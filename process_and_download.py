@@ -179,7 +179,7 @@ def docker_is_root():
     return is_root
 
 
-def form_docker_command():
+def form_docker_command(run_dir, filename=None, file_list=None, **kwargs):
     """Forms the command to run docker
 
     See Also
@@ -247,7 +247,8 @@ def run_docker_container(
 
     run_dir = os.path.abspath(data_directory)
 
-    log.info(cmd)
+    cmd = form_docker_command(run_dir=run_dir, filename=filename, file_list=file_list, **kwargs)
+    log.info(f"Docker command is: {cmd}")
     # The docker image needs a local copy of config in the appropriate directory.
     code_dir = os.path.dirname(os.path.realpath(__file__))
     try:
