@@ -179,7 +179,9 @@ def docker_is_root():
     return is_root
 
 
-def form_docker_command(run_dir, filename=None, file_list=None, **kwargs):
+def form_docker_command(
+    run_dir, container_name="landgate", filename=None, file_list=None, **kwargs
+):
     """Forms the command to run docker
 
     See Also
@@ -189,7 +191,7 @@ def form_docker_command(run_dir, filename=None, file_list=None, **kwargs):
     cmd = f"docker run --rm -v {run_dir}/:/app/data "
     if docker_is_root():
         cmd += " --user $(id -u):$(id -g) "
-    cmd += " landgate "
+    cmd += " {container_name} } "
 
     if file_list:
         cmd += " --filelist 'data/files_to_process.txt'"
