@@ -40,14 +40,15 @@ If you are on windows, you may be able to get this to work using WSL
 
 3. Install conda&mamba through [miniforge](https://github.com/conda-forge/miniforge)  
 You may need to restart your shell, or run `source ~/.bashrc` after this.  
-You should now see the enviornment name `(base)` prefixed in your shell
+You should now see the enviornment name `(base)` prefixed in your shell.
+`mamba` is a drop in, faster replacement for conda. Any `mamba` commands listed here can be swapped out for `conda` if that's your kettle o' fish.
 
-4. Install the environment:
+5. Install the environment:
 	```
 	mamba env create --file env.yml
 	```
 
-5. Install [docker engine](https://docs.docker.com/engine/install/) - Docker Desktop is not needed. , or for WSL (untested), [this](https://docs.docker.com/desktop/wsl/) may be helpful
+6. Install [docker engine](https://docs.docker.com/engine/install/) - Docker Desktop is not needed. , or for WSL (untested), [this](https://docs.docker.com/desktop/wsl/) may be helpful
 
 ## Usage
 1. Install pre-requisites, then activate the enviornment before processing:
