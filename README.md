@@ -21,10 +21,10 @@ A python repository for automatically acquiring and processing Sentinel 1 imager
 
 This package is composed of two parts, a processing tool and a downloading tool. The downloading tool requires python >= 3.7 , while the processing tool requires python==3.6 (as of writing, python 3.6 has been depreciated). This discrepency is solved by building a docker image for the processing tool, which is called from the overarching python 3.10 script.
 
-## Pre-requisites
+## Installation & Pre-requisites
 
 1. This software is only designed to work on Linux, tested on ubuntu 18.04-22.04.
-If you are on windows, you'll likely be able to get this to work using WSL
+If you are on windows, you may be able to get this to work using WSL
 
 2. Clone or download the directory to your local computer, e.g. 
 	```
