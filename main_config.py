@@ -1,5 +1,4 @@
 #!/bin/env/python
-
 # =======================================================================
 # Non-docker options you'd likely want to change.
 # Try to only change this section unless you know what you're doing
@@ -26,8 +25,9 @@ search_criteria = {
     "geom": geo,
 }
 
-# The std_out will be logged here
-log_fname = "~/data/S1_data/debug.log"
+
+# The std_out will be logged here. (relative to data_directory)
+log_fname = "debug.log"
 
 # Delete intermediate files in the processing (ie raw output of snappy)
 del_intermediate = True
