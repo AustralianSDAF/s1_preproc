@@ -195,14 +195,15 @@ def check_docker_image_exists(container_name: str = "s1a_proc") -> bool:
 
 def build_docker_container(container_name: str = "s1a_proc", location: str = "snappy_processing"):
     """Builds a docker container from a location"""
-    location_path_full = Path(location).expanduser().resolve()
+    base_path = sys.path[0]
+    location_path_full = Path(base_path) / location
     log.info(f"Building docker container {container_name} from {location_path_full}")
     cmd = f"docker build {location_path_full} -t {container_name}"
-    log.info(f"Running cmd {cmd}")
+    log.info(f"Running cmd '{cmd}'")
     proc = subprocess.Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-    std_out, err = proc.communicate()
-    log.info(f"Docker std_out, std_err was {std_out.decode('utf-8')}")
-    log.info("std_err was: {err.decode('utf-8')}")
+    with proc.stdout:
+        log_subprocess_output(proc.stdout, initial_text="Docker build ouput: ")
+    proc.wait()
     return
 
 
@@ -240,10 +241,10 @@ def form_docker_command(
     return cmd
 
 
-def log_subprocess_output(pipe) -> None:
+def log_subprocess_output(pipe, initial_text="Docker Output: ") -> None:
     # need to read output as bytes, so encode + concat then decode or a bug printing blank lines occurs. No idea why
     for line in iter(pipe.readline, b""):
-        log.info(("Docker Output: ".encode() + line.rstrip()).decode())
+        log.info((initial_text.encode() + line.rstrip()).decode())
 
     return
 
