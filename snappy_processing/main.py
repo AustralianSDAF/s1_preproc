@@ -21,6 +21,7 @@ import utils
 from pathlib import Path
 
 import data.config as cfg
+import orbits
 
 # DEM.srtm3GeoTiffDEM_HTTP = "http://download.esa.int/step/auxdata/dem/SRTM90/tiff/"
 # configure logging
@@ -37,16 +38,16 @@ os.environ["LC_ALL"] = r"C.UTF-8"
 os.environ["LANG"] = r"C.UTF-8"
 
 
+# TODO make config file a cmdline input
 @click.command()
 @click.option("--filename", default=None)
 @click.option("--filelist", default=None)
-@click.option("--shapefile", default=None)
-def main(filename, filelist, shapefile):
+def main(filename, filelist):
     """Helper function to separate cmdline usage from python importing"""
-    process_file(filename, filelist, shapefile)
+    process_file(filename, filelist)
 
 
-def process_file(filename=None, filelist=None, shapefile_path=None):
+def process_file(filename=None, filelist=None):
     """
     Process a single file, and update the filelist.
 
@@ -67,22 +68,17 @@ def process_file(filename=None, filelist=None, shapefile_path=None):
 
     """
 
-    # Change config if arg present
-    if shapefile_path is not None:
-        cfg.do_subset_from_shapefile = True
-        cfg.do_subset_from_polygon = False
-
     log.info(f"Filename passed in! Filename is {filename}")
     log.info("Checking files and directories ...")
     pre_check = utils.pre_checks(
         filename,
         filelist,
         cfg.raw_data_path,
-        shapefile_path,
-        cfg.do_subset_from_shapefile,
+        cfg.s1tbx_operator_order,
         cfg.final_data_path,
         cfg.archive_data_path,
         cfg.do_archive_data,
+        cfg.shapefile_subdirectory,
     )
 
     if pre_check == 1:
@@ -119,65 +115,33 @@ def process_file(filename=None, filelist=None, shapefile_path=None):
         if utils.check_file_processed(fname, cfg.final_data_path, zip_file_given=True):
             log.info("File already processed. Skipping.")
             continue
-        # check if file exists
+        # Hardcoding garbage collection at max (2) to stop memory leaks
         gc.enable()
         gc.collect()
         full_fname = join(cfg.raw_data_dir, fname)
         log.info("processing {}".format(fname))
-        raw_product = ProductIO.readProduct(join(cfg.raw_data_dir, full_fname))
-        product_name = raw_product.getName()
-        input_prod = raw_product
+        input_prod = ProductIO.readProduct(join(cfg.raw_data_dir, full_fname))
+        product_name = input_prod.getName()
 
-        # start pre-processing steps
-        if cfg.do_apply_orbit_file:
-            aux_data_path = cfg.aux_location
-            applied_orbit_product = utils.apply_orbit_file(
-                input_prod, cfg.apply_orbit_file_param, aux_data_path=aux_data_path
-            )
-            log.info("apply orbit completed")
-            input_prod = applied_orbit_product
+        # Snap9's api is broken so we need to download orbitfiles seperately. Look to see if one exists
+        # We dont need to pass this in later, we just need to move them to a specific (local) directory
+        orbits.get_orbit_files(input_prod.getName(), aux_path=cfg.aux_location)
 
-        if cfg.do_subset_from_polygon:
-            subsetted_product = utils.subset_from_polygon(input_prod, shpfile=cfg.polygon_param)
-            log.info("subsetting form polygon completed")
-            input_prod = subsetted_product
-        elif cfg.do_subset_from_shapefile:
-            subsetted_product = utils.subset_from_shapefile(
-                input_prod, shapefile_path=shapefile_path
-            )
-            log.info("subsetting form shapefile completed")
-            input_prod = subsetted_product
+        all_parameters = cfg.s1tbx_operator_order
 
-        if cfg.do_thermal_noise_removal:
-            thermal_noise_removed_product = utils.thermal_noise_removal(
-                input_prod, cfg.thermal_noise_removal_param
-            )
-            log.info("thermal noise removal completed")
-            input_prod = thermal_noise_removed_product
+        # Adjust subsetting parameters to what's expected
+        for i, operator_config in enumerate(all_parameters):
+            if "shapefilePath" in operator_config:
+                all_parameters[i] = utils.prepare_shapefile_subset(
+                    operator_config, input_prod, cfg.polygon_subdirectory
+                )
+            elif "polygon" in operator_config:
+                all_parameters[i] = utils.prepare_polygon_subset(operator_config)
 
-        if cfg.do_grd_border_noise:
-            border_noise_removed_product = utils.grd_border_noise(
-                input_prod, cfg.grd_border_noise_param
-            )
-            log.info("border noise removal completed")
-            input_prod = border_noise_removed_product
-
-        if cfg.do_calibration:
-            calibreted_product = utils.calibration(input_prod, cfg.calibration_param)
-            log.info("calibration completed")
-            input_prod = calibreted_product
-
-        if cfg.do_speckle_filtering:
-            despeckled_product = utils.speckle_filtering(input_prod, cfg.speckle_filtering_param)
-            log.info("de-speckling completed")
-            input_prod = despeckled_product
-
-        if cfg.do_terrain_correction:
-            terrain_corrected_product = utils.terrain_correction(
-                input_prod, cfg.terrain_correction_param
-            )
-            log.info("terrain correction completed")
-            input_prod = terrain_corrected_product
+        # Apply all other operators
+        for operator_config in all_parameters:
+            log.info(f"Applying operator '{operator_config['operatorName']}'")
+            input_prod = utils.apply_generic_operator(input_prod, operator_config)
 
         # writing final product
         processed_product_name = product_name + "_" + "processed"

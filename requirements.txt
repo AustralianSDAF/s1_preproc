@@ -1,3 +1,0 @@
-click
-
-git+https://github.com/CS-SI/eodag.git

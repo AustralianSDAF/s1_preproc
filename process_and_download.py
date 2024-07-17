@@ -18,7 +18,6 @@ from pathlib import Path
 import getpass
 from subprocess import Popen, PIPE, STDOUT
 import shutil
-from download_utils import download_product_thredds
 
 from osgeo import ogr
 from osgeo import osr
@@ -27,12 +26,11 @@ from eodag import setup_logging
 from eodag.utils.exceptions import AuthenticationError
 from osgeo import gdal
 
-from main_config import log_fname
+from main_config import log_fname, data_directory
 
+log_fname = os.path.join(data_directory, log_fname)
 log_fname = Path(log_fname).expanduser().resolve().as_posix()
-
 os.makedirs(os.path.dirname(log_fname), exist_ok=True)
-
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
     level=logging.INFO,
@@ -40,6 +38,8 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger(__name__)
+
+from download_utils import download_product_thredds
 
 
 def write_shapefile(polygon, fpath="data/search_polygon.shp", crs_num=4326):
@@ -179,6 +179,40 @@ def docker_is_root():
     return is_root
 
 
+def form_docker_command(
+    run_dir, container_name="landgate", filename=None, file_list=None, **kwargs
+):
+    """Forms the command to run docker
+
+    See Also
+    --------
+    run_docker_container : Uses this function
+    """
+    cmd = f"docker run --rm -v {run_dir}/:/app/data "
+    if docker_is_root():
+        cmd += " --user $(id -u):$(id -g) "
+    cmd += f" {container_name} "
+
+    if file_list:
+        cmd += " --filelist 'data/files_to_process.txt'"
+        # Santise files and output
+        file_list = [os.path.basename(f) for f in file_list]
+        with open(join(data_directory, "files_to_process.txt"), "w") as f:
+            f.writelines("\n".join(file_list))
+    elif filename:
+        cmd += f" --filename {filename}"
+    else:
+        raise ValueError("File_list and filename are not valid.")
+
+    for key, val in kwargs.items():
+        if key == "shapefile":
+            cmd += f"  --{key} '{join('data', os.path.basename(val))}'"
+        else:
+            cmd += f"  --{key} '{val}'"
+
+    return cmd
+
+
 def run_docker_container(
     filename=None, file_list=None, data_directory="data", config_override=True, **kwargs
 ):
@@ -214,28 +248,9 @@ def run_docker_container(
             log.info(("Docker Output: ".encode() + line.rstrip()).decode())
 
     run_dir = os.path.abspath(data_directory)
-    cmd = f"docker run --rm -v {run_dir}/:/app/data "
-    if docker_is_root():
-        cmd += " --user $(id -u):$(id -g) "
-    cmd += " landgate "
 
-    if file_list:
-        cmd += " --filelist 'data/files_to_process.txt'"
-        # Santise files and output
-        file_list = [os.path.basename(f) for f in file_list]
-        with open(join(data_directory, "files_to_process.txt"), "w") as f:
-            f.writelines("\n".join(file_list))
-    elif filename:
-        cmd += f" --filename {filename}"
-    else:
-        raise ValueError("File_list and filename are not valid.")
-
-    for key, val in kwargs.items():
-        if key == "shapefile":
-            cmd += f"  --{key} '{join('data', os.path.basename(val))}'"
-        else:
-            cmd += f"  --{key} '{val}'"
-    log.info(cmd)
+    cmd = form_docker_command(run_dir=run_dir, filename=filename, file_list=file_list, **kwargs)
+    log.info(f"Docker command is: {cmd}")
     # The docker image needs a local copy of config in the appropriate directory.
     code_dir = os.path.dirname(os.path.realpath(__file__))
     try:
@@ -244,6 +259,8 @@ def run_docker_container(
             shutil.copy(join(code_dir, "main_config.py"), join(data_directory, "config.py"))
     except shutil.SameFileError:
         pass
+    # move shapefile into relevat
+
     log.info(["-" * 50])
     log.info([f"    Processing file {filename}  "])
     process = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)

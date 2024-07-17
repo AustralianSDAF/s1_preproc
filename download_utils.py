@@ -4,7 +4,7 @@
 #
 # ===========================================================
 #
-# This file is partly derived from the EODAG project
+# Some functions in this file are partly derived from the EODAG project
 #     https://www.github.com/CS-SI/EODAG
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,8 +33,9 @@ import requests
 from eodag.utils import sanitize
 from eodag.utils import ProgressCallback
 
-from main_config import log_fname
+from main_config import log_fname, data_directory
 
+log_fname = os.path.join(data_directory, log_fname)
 log_fname = Path(log_fname).expanduser().resolve().as_posix()
 
 logging.basicConfig(

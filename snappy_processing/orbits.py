@@ -20,6 +20,38 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 
+def get_orbit_files(product_name: str, aux_path: Path) -> None:
+    """Makes sure an orbitfile is in the correct location
+
+    Parameters
+    ----------
+    product_name
+        product name from SNAP `product.name` method
+    orbit_path
+        auxillary data path to look and store data to
+
+    """
+    orbit_path = Path(aux_path) / "orbits"
+
+    # Try to query orbits
+    urls = query_orbit(product_name)
+    # Download URLS as needed
+    download_urls(urls=urls, out_dir=orbit_path)
+    # Move products across to where snap is looking for them. They should be relatively small so no issue with copy over mv
+    old_product_paths = get_old_orbit_data_paths(product_name, orbit_path=orbit_path)
+    if len(old_product_paths) == 0:
+        log.error("No orbit files found after download attempt")
+        return
+    new_product_paths = get_new_orbit_data_paths(product_name, orbit_path=orbit_path)
+    for old_path, new_path in zip(old_product_paths, new_product_paths):
+        Path(new_path).parent.mkdir(parents=True, exist_ok=True)
+        try:
+            shutil.copy(old_path, new_path)
+        except shutil.SameFileError:
+            pass
+    return
+
+
 def get_old_orbit_data_paths(product_name: str, orbit_path: str) -> str:
     """Gets a product path from a S1A file product_name that is in the data directory
 
@@ -60,6 +92,25 @@ def get_old_orbit_data_paths(product_name: str, orbit_path: str) -> str:
         if date_intersection:
             matching_files.append(fpath)
     return matching_files
+
+
+def get_new_orbit_data_paths(product_name: str, orbit_path: Path) -> str:
+    """Gets the location an aux file needs to be to be understood by snap"""
+    filenames = [
+        Path(file).name for file in get_old_orbit_data_paths(product_name, orbit_path=orbit_path)
+    ]
+    product_name_components = product_name.split("_")
+    new_product_path = Path("~/.snap/auxdata/Orbits/Sentinel-1").expanduser()
+    data_paths = []
+    for orbit_type in ["POEORB", "RESORB"]:
+        sat = product_name_components[0]
+        year_str = product_name_components[4][:4]
+        month_str = product_name_components[4][4:6]
+        data_paths += [
+            (new_product_path / orbit_type / sat / year_str / month_str / filename).as_posix()
+            for filename in filenames
+        ]
+    return data_paths
 
 
 def query_orbit(product_name: str) -> list:
@@ -130,25 +181,6 @@ def query_orbit(product_name: str) -> list:
     return orbit_urls
 
 
-def get_new_orbit_data_paths(product_name: str, orbit_path: Path) -> str:
-    """Gets the location an aux file needs to be to be understood by snap"""
-    filenames = [
-        Path(file).name for file in get_old_orbit_data_paths(product_name, orbit_path=orbit_path)
-    ]
-    product_name_components = product_name.split("_")
-    new_product_path = Path("~/.snap/auxdata/Orbits/Sentinel-1").expanduser()
-    data_paths = []
-    for orbit_type in ["POEORB", "RESORB"]:
-        sat = product_name_components[0]
-        year_str = product_name_components[4][:4]
-        month_str = product_name_components[4][4:6]
-        data_paths += [
-            (new_product_path / orbit_type / sat / year_str / month_str / filename).as_posix()
-            for filename in filenames
-        ]
-    return data_paths
-
-
 def download_urls(urls: list, out_dir: Path) -> None:
     """Downloads files from a list of urls if they dont already exist"""
     out_dir = Path(out_dir)
@@ -172,33 +204,4 @@ def download_urls(urls: list, out_dir: Path) -> None:
         with open(filepath, "wb") as file:
             for data in response.iter_content(block_size):
                 file.write(data)
-    return
-
-
-def get_orbit_files(product_name: str, aux_path: Path) -> None:
-    """Makes sure an orbitfile is in the correct location
-
-    Parameters
-    ----------
-    product_name
-        product name from SNAP `product.name` method
-    orbit_path
-        auxillary data path to look and store data to
-
-    """
-    orbit_path = Path(aux_path) / "orbits"
-
-    # Try to query orbits
-    urls = query_orbit(product_name)
-    # Download URLS as needed
-    download_urls(urls=urls, out_dir=orbit_path)
-    # Move products across to where snap is looking for them. They should be relatively small so no issue with copy over mv
-    old_product_paths = get_old_orbit_data_paths(product_name, orbit_path=orbit_path)
-    if len(old_product_paths) == 0:
-        log.error("No orbit files found after download attempt")
-        return
-    new_product_paths = get_new_orbit_data_paths(product_name, orbit_path=orbit_path)
-    for old_path, new_path in zip(old_product_paths, new_product_paths):
-        Path(new_path).parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(old_path, new_path)
     return

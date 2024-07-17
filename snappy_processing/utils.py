@@ -1,5 +1,4 @@
 #!/bin/env/python
-# some functions are taken from https://github.com/wajuqi/Sentinel-1-preprocessing-using-Snappy/blob/master/s1_preprocessing.py
 
 # import imp
 import logging
@@ -11,10 +10,11 @@ from os.path import join, basename, isfile
 import requests
 import re
 
-# from snappy import Product
+# For more information on using the S1TBX (now known as the microwave toolbox, see https://step.esa.int/main/doc/tutorials/)
+
+# For more information on using snappy, see https://senbox.atlassian.net/wiki/spaces/SNAP/pages/19300362/How+to+use+the+SNAP+API+from+Python
 from snappy import ProductIO
 
-# from snappy import ProductUtils
 from snappy import WKTReader
 from snappy import HashMap
 from snappy import GPF
@@ -24,8 +24,6 @@ import shapely
 import snappy
 import shapefile
 import pygeoif
-
-import orbits
 
 
 logging.basicConfig(
@@ -41,17 +39,18 @@ def pre_checks(
     filename,
     filelist,
     raw_data_path,
-    shapefile_path,
-    do_subset_from_shapefile,
+    s1tbx_operator_order,
     final_data_path,
     archive_data_path,
     do_archive_data,
+    shapefile_subdirectory,
 ):
     """perform directory structure check
 
     :return: if return = 0 -> no file to processs | if return = -1 -> Error | else: Success
     :rtype: int
     """
+    # TODO: Change returns to exception raises
 
     # checking paths
     cwd = os.getcwd()
@@ -74,11 +73,33 @@ def pre_checks(
         )
         return -1
 
-    if do_subset_from_shapefile:
-        shapefile_abs_path = os.path.join(cwd, shapefile_path)
-        if not os.path.isfile(shapefile_abs_path):
-            log.error("shapefile does not exist in {}".format(shapefile_path))
+    # Ensure all have an error operatorName and are dictionaries
+    for operation_config in s1tbx_operator_order:
+        if not isinstance(operation_config, dict):
+            log.error(f"operator config was not a dict! It is of type: {type(operation_config)}")
             return -1
+        if "operatorName" not in operation_config:
+            log.error(
+                "No operator name in operator config found in `s1tbx_operator_order` in config file"
+            )
+            log.error(f"Other parameters in bad operator_config are {operation_config.items()}")
+            return -1
+        # make sure Subset operator has the needed parameters
+        if operation_config["operatorName"] == "Subset":
+            needed_Subset_names = ["polygon", "shapefilePath"]
+            names_in_params = any([(name in operation_config) for name in needed_Subset_names])
+            if not names_in_params:
+                return -1
+        # Make sure a subset shapefile exists
+        if "shapefilePath" in operation_config:
+            shapefile_dir = Path(shapefile_subdirectory)
+            shapefile_path = shapefile_dir / Path(operation_config["shapefilePath"]).name
+            if not shapefile_path.is_file():
+                log.error(
+                    f"Shapefile does not exist. Real path was: {operation_config['shapefilePath']}"
+                )
+                log.error(f"local path was  {shapefile_path.as_posix()}")
+                return -1
 
     raw_data_dir = os.path.join(cwd, raw_data_path)
     num_files = [f for f in os.listdir(raw_data_dir) if ".zip" in f]
@@ -105,139 +126,32 @@ def pre_checks(
     return 1
 
 
-def apply_orbit_file(source, apply_orbit_file_param, aux_data_path):
-    """To properly orthorectify the image, the orbit file is applied using the Apply-Orbit-File GPF module.
+def apply_generic_operator(source: ProductIO, generic_parameters: dict):
+    """
+    Applies an operator generic_paramters['operatorName'] using all other parameters on source
 
-    :param source: input
-    :type source: SNAP product object
+    Parameters
+    ----------
+    source
+        a S1 GRD file loaded via snappy's ProductIO function to be operatored on
+    generic_paramters
+        a dictionary of parameters. Will feed all parameters except 'operatorName'
+        to the operator 'operatorName'
     """
 
-    # Snap9's api is broken so we need to download orbitfiles seperately. Look to see if one exists
-    # We dont need to pass this in later, we just need to move them to a specific (local) directory
-    orbits.get_orbit_files(product_name=source.getName(), aux_path=aux_data_path)
-
-    parameters = HashMap()
+    java_parameters = HashMap()
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
-    for key, value in apply_orbit_file_param.items():
-        if value is not None:
-            parameters.put(key, value)
+    for key, value in generic_parameters.items():
+        if (value is not None) and (key != "operatorName"):
+            java_parameters.put(key, value)
 
-    output = GPF.createProduct("Apply-Orbit-File", parameters, source)
+    output = GPF.createProduct(generic_parameters["operatorName"], java_parameters, source)
     return output
 
 
-def calibration(source, calibration_param):
-    """calibrate the data to sigma-naught values
-
-    :param source: input
-    :type source: SNAP product object
-    :return: calibrated product
-    :rtype: SNAP product object
-    """
-    parameters = HashMap()
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-
-    for key, value in calibration_param.items():
-        if value is not None:
-            parameters.put(key, value)
-
-    output = GPF.createProduct("Calibration", parameters, source)
-    return output
-
-
-def speckle_filtering(source, speckle_filtering_param):
-    """remove speckle noise from the imagary
-
-    :param source: input
-    :type source: SNAP product object
-    :return: despeckled data
-    :rtype: SNAP product object
-    """
-
-    parameters = HashMap()
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-
-    for key, value in speckle_filtering_param.items():
-        if value is not None:
-            parameters.put(key, value)
-
-    output = GPF.createProduct("Speckle-Filter", parameters, source)
-    return output
-
-
-def terrain_correction(source, terrain_correction_param):
-    """apply terrain correction to the product
-
-    :param source: input
-    :type source: SNAP product object
-    :return: terrain corrected object
-    :rtype: SNAP product object
-    """
-    parameters = HashMap()
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-
-    for key, value in terrain_correction_param.items():
-        if value is not None:
-            parameters.put(key, value)
-
-    output = GPF.createProduct("Terrain-Correction", parameters, source)
-    return output
-
-
-def grd_border_noise(source, grd_border_noise_param):
-    """_summary_
-
-    :param source: _description_
-    :type source: _type_
-    :return: _description_
-    :rtype: _type_
-    """
-    parameters = HashMap()
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-
-    for key, value in grd_border_noise_param.items():
-        if value is not None:
-            parameters.put(key, value)
-
-    output = GPF.createProduct("Remove-GRD-Border-Noise", parameters, source)
-    return output
-
-
-def thermal_noise_removal(source, thermal_noise_removal_param):
-    """apply thermal noise removal to input data
-
-    :param source: input
-    :type source: SNAP product object
-    :return: thermal noise removed object
-    :rtype: SNAP product object
-    """
-    parameters = HashMap()
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-
-    for key, value in thermal_noise_removal_param.items():
-        if value is not None:
-            parameters.put(key, value)
-    output = GPF.createProduct("ThermalNoiseRemoval", parameters, source)
-    return output
-
-
-def subset_from_polygon(source, poly_inp=None):
-
-    if type(poly_inp) is str:  # should be a wkt string
-        poly = wkt.loads(poly_inp)
-        wkt_s = poly_inp
-    elif isinstance(poly_inp, Polygon):
-        poly = poly_inp
-        wkt_s = poly.wkt
-    elif poly_inp is not None:  # Try loading it directly with shapely
-        poly = Polygon(poly_inp)
-        wkt_s = poly.wkt
-    else:
-        wkt_s = None
-        poly = None
-
-    # check if polygon inside the image
+def check_poly_intersects_image(poly: Polygon, source: ProductIO, boundary: int = 2000) -> None:
+    """Check if polygon intersects image, code original author Foad Farivar"""
     data_boundary_java = snappy.ProductUtils.createGeoBoundary(source, 2000)
     image_poly = Polygon([(i.lon, i.lat) for i in list(data_boundary_java)])
     if poly is not None:
@@ -246,34 +160,26 @@ def subset_from_polygon(source, poly_inp=None):
             log.error(f"    polygon given is {poly.wkt}")
             log.error(f"    Image polygon is {image_poly.wkt}")
             raise ValueError("Shapefile polygon does not overlap with image")
-
-    # SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
-    geometry = WKTReader().read(wkt_s)
-
-    parameters = HashMap()
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-
-    parameters.put("copyMetadata", True)
-    parameters.put("geoRegion", geometry)
-    output = GPF.createProduct("Subset", parameters, source)
-
-    return output
+    return
 
 
-def subset_from_shapefile(source, shapefile_path=None):
+def prepare_polygon_subset(polygon_params, source):
+    """prepares the polygon parameters dictionary for a polygon subset"""
+    # We need to delete the 'polygon' parameter
+    polygon = Polygon(polygon_params.pop("polygon"))
+    wkt_s = polygon.wkt
+    check_poly_intersects_image(polygon, source)
+    polygon_params["geoRegion"] = WKTReader().read(wkt_s)
+    return polygon_params
 
-    if shapefile_path is not None:
-        path = os.path.abspath(shapefile_path)
-    else:
-        path = shapefile_path
-    # check path
+
+def load_shapefile(shapefile_path: Path):
+    """Load shapefile, code original author Foad Farivar"""
     try:
-        r = shapefile.Reader(path)
+        r = shapefile.Reader(shapefile_path)
     except Exception as e:
-        log.info(f"Files in dir are {os.listdir(os.path.dirname(path))}")
-        log.error("cannot read the shapefile in: {}".format(path))
+        log.error(f"cannot read shapefile: {shapefile_path}")
         raise e
-
     g = []
     for s in r.shapes():
         g.append(pygeoif.geometry.as_shape(s))
@@ -281,24 +187,24 @@ def subset_from_shapefile(source, shapefile_path=None):
     wkt = str(m.wkt).replace("MULTIPOINT", "POLYGON(") + ")"
     log.info(f"WKT IS {wkt}")
     poly = shapely.wkt.loads(wkt)
+    return poly
 
-    data_boundary_java = snappy.ProductUtils.createGeoBoundary(source, 2000)
-    image_poly = Polygon([(i.lon, i.lat) for i in list(data_boundary_java)])
-    if poly is not None:
-        if not image_poly.intersects(poly):
-            log.error("Shapefile polygon does not intersect image. Raising an exception")
-            log.error(f"    Shapefile polygon is {poly.wkt}")
-            log.error(f"    Image polygon is {image_poly.wkt}")
-            raise ValueError("Shapefile polygon does not overlap with image")
 
-    output = subset_from_polygon(source, wkt)
-
-    return output
+def prepare_shapefile_subset(shapefile_params, source, shapefile_subdirectory):
+    """prepares the shapefile parameters dictionary for a polygon subset"""
+    # We need to delete the shapefilePath parameter
+    shapefile_path = Path(shapefile_params.pop("shapefilePath"))
+    # Shapefile_path is entered as a global path. Adjust to its local docker path
+    shapefile_path = Path(shapefile_subdirectory) / shapefile_path.name
+    polygon = load_shapefile(shapefile_path)
+    wkt_s = polygon.wkt
+    check_poly_intersects_image(polygon, source)
+    shapefile_params["geoRegion"] = WKTReader().read(wkt_s)
+    return shapefile_params
 
 
 def check_file_processed(fname, final_data_path="./data/data_processed/", zip_file_given=True):
     """Checks if a file has already been processed"""
-
     fname = basename(fname)
     if zip_file_given:
         fname = re.sub("(.zip)$", "_processed.tif", fname)
