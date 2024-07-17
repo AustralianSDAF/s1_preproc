@@ -43,12 +43,12 @@ This image is designed primarily to be run from the `process_and_download.py` sc
 
 (c) Build the docker image with user_id arguments:
 ```
-    docker build -t landgate
+    docker build -t s1a_proc
 ```
 
 (d) Copy the row .zip files to raw_data_path (by default in `./data/data_raw`).
 
-(e) Run the docker image: `docker run --rm -it -v <directory with "data_raw">:/app/data landgate`. If you are running on a root install of docker, you should also provide the `--user $(id -u):$(id -g)` parameter, or else files created may be owned by root.
+(e) Run the docker image: `docker run --rm -it -v <directory with "data_raw">:/app/data s1a_proc`. If you are running on a root install of docker, you should also provide the `--user $(id -u):$(id -g)` parameter, or else files created may be owned by root.
 
 (f) The final processed image will be saved in final_data_path (by default in `./data/data_processed`)
 
@@ -60,9 +60,9 @@ These steps may or may not work, and might be dependent on the version of ubunt 
 
 (c) Download SNAP: `wget  --progress=bar https://download.esa.int/step/snap/9.0/installers/esa-snap_sentinel_unix_9_0_0.sh`
 
-(d) Create a conda environment:  `conda create --name landgate python=3.6`
+(d) Create a conda environment:  `conda create --name s1a_proc python=3.6`
 
-(e) Activate the environment `conda activate landgate`.
+(e) Activate the environment `conda activate s1a_proc`.
 
 (f) Install SNAP: `bash esa-snap_sentinel_unix_9_0_0.sh`
 
