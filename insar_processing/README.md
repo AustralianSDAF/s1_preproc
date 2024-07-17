@@ -1,5 +1,4 @@
-# Landgate-ASDAF Project
-## Sentinel-1 InSAR Image Processing with SNAPPY
+# Sentinel-1 InSAR Image Processing with SNAPPY
 Author:
 - Calvin Pang (calvin.pang@curtin.edu.au)
 
@@ -52,7 +51,7 @@ Note: Modify the paths as necessary depending on your machine.
 ## Usage
 ### Individual Processing
 1. Navigate to the directory containing this repository  
-  `cd landgate/insar_processing`
+  `cd s1a_proc/insar_processing`
 2. Activate the conda environment  
   `conda activate snap8`
 3. Configure `config.py` as required
@@ -66,7 +65,7 @@ Note: Modify the paths as necessary depending on your machine.
 
 ### Batch Processing
 1. Navigate to the directory containing this repository  
-  `cd landgate/insar_processing`
+  `cd s1a_proc/insar_processing`
 2. Activate the conda environment  
   `conda activate snap8`
 3. Configure `config.py` as required
