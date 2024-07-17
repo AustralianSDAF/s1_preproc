@@ -157,7 +157,7 @@ Future steps to make the program better
 - [ ] Full docker image with everything ready to go as a command line program
 - [ ] Script to create & remove cronjob (currently just manually done)
 - [ ] Sphinx documentation
-- [ ] Check if container exists, build it if not
+- [x] Check if container exists, build it if not
 - [ ] Include support for singularity/podman
 
 

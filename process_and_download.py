@@ -183,13 +183,27 @@ def docker_is_root():
 def check_docker_image_exists(container_name: str = "s1a_proc") -> bool:
     """Checks if a docker image is in the local cache"""
     cmd = 'docker image list --filter "reference=landgate" --format json'
-    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     std_out, err = proc.communicate()
     # output is a byte string so we need to decode it
     std_out_split = std_out.decode("utf-8").split("\n")
     images = [json.loads(line) for line in std_out_split if line]
     image_exists = any([image["Repository"] == container_name for image in images])
+    log.info(f"Does docker image {container_name} exist: {image_exists}")
     return image_exists
+
+
+def build_docker_container(container_name: str = "s1a_proc", location: str = "snappy_processing"):
+    """Builds a docker container from a location"""
+    location_path_full = Path(location).expanduser().resolve()
+    log.info(f"Building docker container {container_name} from {location_path_full}")
+    cmd = f"docker build {location_path_full} -t {container_name}"
+    log.info(f"Running cmd {cmd}")
+    proc = subprocess.Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    std_out, err = proc.communicate()
+    log.info(f"Docker std_out, std_err was {std_out.decode('utf-8')}")
+    log.info("std_err was: {err.decode('utf-8')}")
+    return
 
 
 def form_docker_command(
@@ -226,9 +240,17 @@ def form_docker_command(
     return cmd
 
 
+def log_subprocess_output(pipe) -> None:
+    # need to read output as bytes, so encode + concat then decode or a bug printing blank lines occurs. No idea why
+    for line in iter(pipe.readline, b""):
+        log.info(("Docker Output: ".encode() + line.rstrip()).decode())
+
+    return
+
+
 def run_docker_container(
     filename=None, file_list=None, data_directory="data", config_override=True, **kwargs
-):
+) -> None:
     """
     Runs the docker container with appropriate cmdline arguments
 
@@ -255,14 +277,16 @@ def run_docker_container(
     log.setLevel(logging.DEBUG)
     log.info("Beggining logging...")
 
-    def log_subprocess_output(pipe):
-        # need to read output as bytes, so encode + concat then decode or a bug printing blank lines occurs. No idea why
-        for line in iter(pipe.readline, b""):
-            log.info(("Docker Output: ".encode() + line.rstrip()).decode())
-
     run_dir = os.path.abspath(data_directory)
 
-    cmd = form_docker_command(run_dir=run_dir, filename=filename, file_list=file_list, **kwargs)
+    image_name = "s1a_proc"
+    image_exists = check_docker_image_exists(container_name=image_name)
+    if not image_exists:
+        build_docker_container(container_name=image_name)
+
+    cmd = form_docker_command(
+        run_dir=run_dir, container_name=image_name, filename=filename, file_list=file_list, **kwargs
+    )
     log.info(f"Docker command is: {cmd}")
     # The docker image needs a local copy of config in the appropriate directory.
     code_dir = os.path.dirname(os.path.realpath(__file__))
@@ -286,6 +310,7 @@ def run_docker_container(
     else:
         log.error(f"    Exitcode nonzero for file: {filename}")
         log.error(f"    Exitcode was: {exitcode}")
+    return
 
 
 def reformat_geotif(input_fname, output_fname=None):
