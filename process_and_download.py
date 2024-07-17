@@ -180,7 +180,7 @@ def docker_is_root():
 
 
 def form_docker_command(
-    run_dir, container_name="landgate", filename=None, file_list=None, **kwargs
+    run_dir, container_name="s1a_proc", filename=None, file_list=None, **kwargs
 ):
     """Forms the command to run docker
 
@@ -415,7 +415,6 @@ def run_all(download_from_thredds, data_directory, search_criteria, del_intermed
     raw_data_path = os.path.join(data_directory, "data_raw")
     final_data_path = os.path.join(data_directory, "data_processed")
 
-    # data_directory = '/home/leight/LANDGATE/data/S1_data'
     # raw_data_path = os.path.join(data_directory, 'data_raw')
     # final_data_path = os.path.join(data_directory, 'data_processed')
     os.makedirs(raw_data_path, exist_ok=True)
