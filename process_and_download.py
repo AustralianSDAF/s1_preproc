@@ -191,7 +191,7 @@ def form_docker_command(
     cmd = f"docker run --rm -v {run_dir}/:/app/data "
     if docker_is_root():
         cmd += " --user $(id -u):$(id -g) "
-    cmd += " {container_name} } "
+    cmd += f" {container_name} "
 
     if file_list:
         cmd += " --filelist 'data/files_to_process.txt'"
