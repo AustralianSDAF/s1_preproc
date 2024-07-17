@@ -184,6 +184,9 @@ aux_location = "./data/aux_data"
 # Docker  internal Path to shapefiles data like orbitfiles (relative to entrypoint paths)
 shapefile_subdirectory = "./data/Polygons"
 
+# Docker image name to use
+docker_image_name = "s1_preproc"
+
 # =======================================================================
 # -------------------End of config file---------------------------------
 # =======================================================================
