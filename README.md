@@ -2,7 +2,10 @@
 
 Author(s):
 - Leigh Tyers 
-- Foad Farivar
+- Foad Farivar  
+
+Proof of concept insar processing (see insar_processing directory):
+- Calvin Pang
 
 ## Contents
 - [Overview](#overview)
@@ -38,7 +41,7 @@ You should now see the enviornment name `(base)` prefixed in your shell
 	mamba env create --file env.yml
 	```
 
-5. Install docker engine (NOT Desktop). See [here](https://docs.docker.com/engine/install/), or for WSL (untested), [this](https://docs.docker.com/desktop/wsl/) may be helpful
+5. Install docker engine (Docker Desktop is not needed). See [here](https://docs.docker.com/engine/install/), or for WSL (untested), [this](https://docs.docker.com/desktop/wsl/) may be helpful
 
 ## Usage
 1. Install pre-requisites, then activate the enviornment before processing:
@@ -79,7 +82,7 @@ and inserting the following lines:
 ```
 SHELL=/bin/bash
 BASH_ENV=~/.bashrc_conda
-* */2 * * * run-one conda run --no-capture-output -n base python3 /home/ubuntu/code/landgate/process_and_download.py
+* */2 * * * run-one conda run --no-capture-output -n base python3 <DIR>/process_and_download.py
 ```
 This will set the program once every 2 hours, using the conda/mamba environment `base`, but only if the same command isnt already running (ie if it's processing and taking some time, it wont relaunch itself).   
 
@@ -109,8 +112,25 @@ The snappy processing will do the following:
 - Subsetting (if requested, by default off)
 
 Although any defined operation should work. Simply:
-1. Create a new dictionary in the config file with the key `operatorName` whose corresponding value is the SNAP operator, and give it any needed parameters. 
-2. Insert this new dictionary into the list `s1tbx_operator_order` at the place in the processing chain you wish your new operator to be processed at.
+1. Create a new dictionary in the config file with the key `operatorName` whose corresponding value is the SNAP operator, and give it any needed parameters. e.g:
+	```py
+	second_grd_border_noise_param = {
+		"operatorName": "Remove-GRD-Border-Noise",
+		"trimThreshold": 0.5,
+		"borderLimit": 1000,
+	}
+	```
+2. Insert this new dictionary into the list `s1tbx_operator_order` at the place in the processing chain you wish your new operator to be processed at.  
+e.g. the following will run the operation above after the first grd_border_noise removal, but before the terrain correction:
+	```py
+	s1tbx_operator_order = [
+		apply_orbit_file_param,
+		thermal_noise_removal_param,
+		grd_border_noise_param,
+		second_grd_border_noise_param,
+    	terrain_correction_param,
+	]
+	```
 
 ### GDAL Processing
 Snappy by default doesnt apply adequate compresion to the geotiff, so once the snappy processing is completed, the raster output is then transformed into a [COG (Cloud Optimized GeoTiff)](https://www.cogeo.org/) with extra lossless compression applied. With lossless compression applied (`COMPRESS=LZW, PREDICTOR=2`), the COG is half the size of the snappy output, but about 15-25% larger than the equivalent standard geotiff with the same compression flags applied.
