@@ -9,19 +9,25 @@ Proof of concept insar processing (see insar_processing directory):
 
 ## Contents
 - [Overview](#overview)
-- [Setup](#setup)
+- [Installation & Pre-requisites](#installation-and-pre-requisites)
 - [Downloading tool](#downloading-tool)
 - [Processing tool](#processing-tool)
 - [References](#references)
-- [Manually setting up a NimbusVM](#manually-setting-up-a-nimbusvm)
 ___
 
 ## Overview
 A python repository for automatically acquiring and processing Sentinel 1 imagery over Australia.
 
-This package is composed of two parts, a processing tool and a downloading tool. The downloading tool requires python >= 3.7 , while the processing tool requires python==3.6 (as of writing, python 3.6 has been depreciated). This discrepency is solved by building a docker image for the processing tool, which is called from the overarching python 3.10 script.
+This package is composed of a few parts
+- A processing tool 
+- A downloading tool, which calls the processing tool
+- A POC insar processing tool
+The downloader requires python >= 3.7 , while the processing tool requires python==3.6 (as of writing, python 3.6 has been depreciated). This discrepency is solved by building a docker image for the processing tool, which is called from the overarching python 3.10 script.
 
-## Installation & Pre-requisites
+Due to their currently being only one Sentinel-1 satellite (S1B is down, S1C is yet to launch), we expect use of this tool to be only the processing tool and downloading tool.
+
+
+## Installation and Pre-requisites
 
 1. This software is only designed to work on Linux, tested on ubuntu 18.04-22.04.
 If you are on windows, you may be able to get this to work using WSL
@@ -41,7 +47,7 @@ You should now see the enviornment name `(base)` prefixed in your shell
 	mamba env create --file env.yml
 	```
 
-5. Install docker engine (Docker Desktop is not needed). See [here](https://docs.docker.com/engine/install/), or for WSL (untested), [this](https://docs.docker.com/desktop/wsl/) may be helpful
+5. Install [docker engine](https://docs.docker.com/engine/install/) - Docker Desktop is not needed. , or for WSL (untested), [this](https://docs.docker.com/desktop/wsl/) may be helpful
 
 ## Usage
 1. Install pre-requisites, then activate the enviornment before processing:
