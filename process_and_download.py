@@ -18,6 +18,7 @@ from pathlib import Path
 import getpass
 from subprocess import Popen, PIPE, STDOUT
 import shutil
+import json
 
 from osgeo import ogr
 from osgeo import osr
@@ -177,6 +178,18 @@ def docker_is_root():
         text_output = None
     is_root = False if (text_output) else True
     return is_root
+
+
+def check_docker_image_exists(container_name: str = "s1a_proc") -> bool:
+    """Checks if a docker image is in the local cache"""
+    cmd = 'docker image list --filter "reference=landgate" --format json'
+    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    std_out, err = proc.communicate()
+    # output is a byte string so we need to decode it
+    std_out_split = std_out.decode("utf-8").split("\n")
+    images = [json.loads(line) for line in std_out_split if line]
+    image_exists = any([image["Repository"] == container_name for image in images])
+    return image_exists
 
 
 def form_docker_command(
