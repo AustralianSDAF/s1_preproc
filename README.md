@@ -29,7 +29,8 @@ Due to there currently (as of writing) being only one Sentinel-1 satellite (S1B 
 
 ## Installation and Pre-requisites
 
-1. This software is only designed to work on Linux, tested on ubuntu 18.04-22.04.
+1. This software is only designed to work on Linux, tested on ubuntu 18.04-22.04.  
+It is untested on Mac (OS X), but it may work.  
 If you are on windows, you may be able to get this to work using WSL
 
 2. Clone or download the directory to your local computer, e.g. 
