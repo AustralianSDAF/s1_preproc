@@ -36,7 +36,7 @@ If you are on windows, you may be able to get this to work using WSL
 
 2. Clone or download the directory to your local computer, e.g. 
 	```
-	git clone <git repo url>
+	git clone https://github.com/AustralianSDAF/s1_preproc.git
 	```
 	Extract the folder if needed, and navigate in a shell to the directory using `cd`
 
