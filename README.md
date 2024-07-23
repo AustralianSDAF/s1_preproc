@@ -175,5 +175,4 @@ Future steps to make the program better
 1. https://github.com/mundialis/esa-snap/tree/master
 2. https://senbox.atlassian.net/wiki/spaces/SNAP/pages/50855941/Configure+Python+to+use+the+SNAP-Python+snappy+interface
 3. http://step.esa.int/docs/tutorials/tutorial_s1floodmapping.pdf
-4. https://github.com/wajuqi/Sentinel-1-preprocessing-using-Snappy
 
