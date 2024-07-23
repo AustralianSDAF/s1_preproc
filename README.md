@@ -25,7 +25,7 @@ This package is composed of a few parts
 
 The downloader requires python >= 3.7 , while the processing tool requires python==3.6 (as of writing, python 3.6 has been depreciated). This discrepency is solved by building a docker image for the processing tool, which is called from the overarching python 3.10 script.
 
-Due to there currently (as of writing) being only one Sentinel-1 satellite (S1B is down, S1C is yet to launch), we expect use of this tool to be only the processing tool and downloading tool.
+Due to there as of writing being only one Sentinel-1 satellite (S1B is down, S1C is yet to launch), we expect use of this tool to be only exend to the processing and downloading components.
 
 
 ## Installation and Pre-requisites
