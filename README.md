@@ -130,7 +130,7 @@ Although any defined operation should work. Simply:
 	}
 	```
 2. Insert this new dictionary into the list `s1tbx_operator_order` at the place in the processing chain you wish your new operator to be processed at.  
-e.g. the following will run the operation above after the first grd_border_noise removal, but before the terrain correction:
+e.g. as purely an example of the processing order (you probably wont want to run two border noise removals), the following will run the operation above after the first grd_border_noise removal, but before the terrain correction:
 	```py
 	s1tbx_operator_order = [
 		apply_orbit_file_param,
